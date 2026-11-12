@@ -5,7 +5,9 @@
 StoreCrate installs free Microsoft Store apps directly from Microsoft's own delivery
 service — no Microsoft Store app, no App Installer, and no `winget` required.
 
-![StoreCrate icon](assets/icon.png)
+<p align="center">
+  <img src="assets/icon-128.png" width="96" height="96" alt="StoreCrate icon">
+</p>
 
 [![CI](https://github.com/NaveenKumarYeluri/StoreCrate/actions/workflows/ci.yml/badge.svg)](https://github.com/NaveenKumarYeluri/StoreCrate/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/NaveenKumarYeluri/StoreCrate?include_prereleases)](https://github.com/NaveenKumarYeluri/StoreCrate/releases)
