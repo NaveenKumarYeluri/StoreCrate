@@ -7,7 +7,7 @@ public static class AppInfo
 
     public const string Tagline = "A lightweight, modern Microsoft Store client for Windows.";
 
-    public const string RepositoryOwner = "naveenk0513";
+    public const string RepositoryOwner = "NaveenKumarYeluri";
 
     public const string RepositoryName = "StoreCrate";
 

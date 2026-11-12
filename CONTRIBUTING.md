@@ -18,7 +18,7 @@ Requirements:
 - .NET 8 SDK
 
 ```powershell
-git clone https://github.com/naveenk0513/StoreCrate.git
+git clone https://github.com/NaveenKumarYeluri/StoreCrate.git
 cd StoreCrate
 dotnet restore
 dotnet build -c Debug

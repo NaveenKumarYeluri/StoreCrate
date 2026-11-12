@@ -7,8 +7,8 @@ service — no Microsoft Store app, no App Installer, and no `winget` required.
 
 ![StoreCrate icon](assets/icon.png)
 
-[![CI](https://github.com/naveenk0513/StoreCrate/actions/workflows/ci.yml/badge.svg)](https://github.com/naveenk0513/StoreCrate/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/naveenk0513/StoreCrate?include_prereleases)](https://github.com/naveenk0513/StoreCrate/releases)
+[![CI](https://github.com/NaveenKumarYeluri/StoreCrate/actions/workflows/ci.yml/badge.svg)](https://github.com/NaveenKumarYeluri/StoreCrate/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/NaveenKumarYeluri/StoreCrate?include_prereleases)](https://github.com/NaveenKumarYeluri/StoreCrate/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
@@ -61,7 +61,7 @@ Microsoft account.
 
 ## Install
 
-1. Open the [Releases](https://github.com/naveenk0513/StoreCrate/releases) page.
+1. Open the [Releases](https://github.com/NaveenKumarYeluri/StoreCrate/releases) page.
 2. Download one of:
    - `StoreCrate-<version>-win-x64.zip` — self-contained, recommended.
    - `StoreCrate-<version>-win-x64-framework-dependent.zip` — smaller, needs .NET 8.
@@ -118,7 +118,7 @@ Prerequisites:
 - Windows 10/11
 
 ```powershell
-git clone https://github.com/naveenk0513/StoreCrate.git
+git clone https://github.com/NaveenKumarYeluri/StoreCrate.git
 cd StoreCrate
 dotnet restore
 dotnet build -c Release
