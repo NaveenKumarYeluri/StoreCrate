@@ -28,7 +28,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
         _includeSystem = settings.Current.ShowSystemApps;
     }
 
-    public ObservableCollection<InstalledApp> Apps { get; } = new();
+    public ObservableCollection<InstalledAppRow> Apps { get; } = new();
 
     [ObservableProperty]
     private string _filter = string.Empty;
@@ -61,9 +61,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
 
         try
         {
-            _allApps = (await _installedApps.GetInstalledAppsAsync(IncludeSystem)).ToList();
-            ApplyFilter();
-            StatusText = _allApps.Count == 1 ? "1 app installed" : $"{_allApps.Count} apps installed";
+            await ReloadAsync();
         }
         catch (Exception ex)
         {
@@ -76,22 +74,40 @@ public sealed partial class InstalledViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private async Task LaunchAsync(InstalledApp? app)
+    /// <summary>Re-reads the package list without the re-entrancy guard used by the command.</summary>
+    private async Task ReloadAsync()
     {
-        if (app is null)
+        _allApps = (await _installedApps.GetInstalledAppsAsync(IncludeSystem)).ToList();
+        ApplyFilter();
+        StatusText = _allApps.Count == 1 ? "1 app installed" : $"{_allApps.Count} apps installed";
+    }
+
+    internal async Task OpenRowAsync(InstalledAppRow row)
+    {
+        if (row.IsBusy)
         {
             return;
         }
 
-        if (!await _installedApps.LaunchAsync(app))
+        row.IsBusy = true;
+        try
         {
-            StatusText = $"Windows could not launch {app.DisplayName}.";
+            if (!await _installedApps.LaunchAsync(row.App))
+            {
+                StatusText = $"Windows could not launch {row.DisplayName}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ReportError(ex);
+        }
+        finally
+        {
+            row.IsBusy = false;
         }
     }
 
-    [RelayCommand]
-    private void RequestUninstall(InstalledApp? app) => PendingUninstall = app;
+    internal void RequestUninstall(InstalledApp? app) => PendingUninstall = app;
 
     [RelayCommand]
     private void CancelUninstall() => PendingUninstall = null;
@@ -107,12 +123,13 @@ public sealed partial class InstalledViewModel : ViewModelBase
         }
 
         IsBusy = true;
+        ClearError();
+        StatusText = $"Uninstalling {app.DisplayName}…";
+        InstallResult? result = null;
+
         try
         {
-            var result = await _installedApps.UninstallAsync(app);
-            StatusText = result.Message;
-            _allApps.Remove(app);
-            ApplyFilter();
+            result = await UninstallRunner.RunAsync(_installedApps, app);
         }
         catch (Exception ex)
         {
@@ -121,32 +138,49 @@ public sealed partial class InstalledViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+
+            // Always re-read the system list. If the package disappeared while the WinRT
+            // operation was still finishing, the row is removed here instead of lingering.
+            try
+            {
+                await ReloadAsync();
+            }
+            catch (Exception ex)
+            {
+                ReportError(ex);
+            }
+
+            // Keep the outcome visible; ReloadAsync overwrites StatusText with the count.
+            if (result is not null)
+            {
+                StatusText = result.Message;
+            }
+
             OnPropertyChanged(nameof(ShowEmptyState));
         }
     }
 
-    [RelayCommand]
-    private async Task FindInStoreAsync(InstalledApp? app)
+    internal async Task ShowRowInStoreAsync(InstalledAppRow row)
     {
-        if (app is null)
+        if (row.IsBusy)
         {
             return;
         }
 
-        IsBusy = true;
-        StatusText = $"Looking up {app.DisplayName} in the Store…";
+        row.IsBusy = true;
+        StatusText = $"Looking up {row.DisplayName} in the Store…";
 
         try
         {
-            var results = await _catalog.SearchAsync(app.DisplayName);
+            var results = await _catalog.SearchAsync(row.DisplayName);
             var match = results.FirstOrDefault(result =>
                             result.PackageFamilyNames.Any(familyName =>
-                                string.Equals(familyName, app.PackageFamilyName, StringComparison.OrdinalIgnoreCase)))
+                                string.Equals(familyName, row.PackageFamilyName, StringComparison.OrdinalIgnoreCase)))
                         ?? results.FirstOrDefault();
 
             if (match is null)
             {
-                StatusText = $"{app.DisplayName} was not found in the Microsoft Store.";
+                StatusText = $"{row.DisplayName} was not found in the Microsoft Store.";
                 return;
             }
 
@@ -158,7 +192,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
         }
         finally
         {
-            IsBusy = false;
+            row.IsBusy = false;
         }
     }
 
@@ -187,7 +221,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
         Apps.Clear();
         foreach (var app in filtered)
         {
-            Apps.Add(app);
+            Apps.Add(new InstalledAppRow(app, this));
         }
 
         OnPropertyChanged(nameof(HasApps));

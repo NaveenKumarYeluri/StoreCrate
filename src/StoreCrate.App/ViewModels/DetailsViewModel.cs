@@ -169,7 +169,7 @@ public sealed partial class DetailsViewModel : ViewModelBase
 
         try
         {
-            var result = await _installedApps.UninstallAsync(InstalledApp);
+            var result = await UninstallRunner.RunAsync(_installedApps, InstalledApp);
             StatusIsError = !result.IsSuccess;
             StatusMessage = result.Message;
             await RefreshInstalledStateAsync();

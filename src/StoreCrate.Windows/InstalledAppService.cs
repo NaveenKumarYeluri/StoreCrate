@@ -56,21 +56,27 @@ public sealed class InstalledAppService : IInstalledAppService
 
         try
         {
-            var manager = new PackageManager();
-            var operation = manager.RemovePackageAsync(app.PackageFullName);
-            using var registration = cancellationToken.Register(() =>
+            // Run the WinRT call on a worker (MTA) thread. Calling RemovePackageAsync from
+            // the UI thread leaves the async operation unretrievable in some cases, which
+            // looks like an uninstall that never finishes.
+            var result = await Task.Run(async () =>
             {
-                try
+                var manager = new PackageManager();
+                var operation = manager.RemovePackageAsync(app.PackageFullName);
+                using var registration = cancellationToken.Register(() =>
                 {
-                    operation.Cancel();
-                }
-                catch
-                {
-                    // Best effort.
-                }
-            });
+                    try
+                    {
+                        operation.Cancel();
+                    }
+                    catch
+                    {
+                        // Best effort.
+                    }
+                });
 
-            var result = await operation;
+                return await operation;
+            }, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             if (result.ExtendedErrorCode is null)
@@ -100,16 +106,20 @@ public sealed class InstalledAppService : IInstalledAppService
 
         try
         {
-            var manager = new PackageManager();
-            var package = manager.FindPackageForUser(string.Empty, app.PackageFullName);
-            if (package is null)
+            // Launch on a worker (MTA) thread for the same reason as uninstall.
+            return await Task.Run(async () =>
             {
-                return false;
-            }
+                var manager = new PackageManager();
+                var package = manager.FindPackageForUser(string.Empty, app.PackageFullName);
+                if (package is null)
+                {
+                    return false;
+                }
 
-            var entries = await package.GetAppListEntriesAsync();
-            var entry = entries.FirstOrDefault();
-            return entry is not null && await entry.LaunchAsync();
+                var entries = await package.GetAppListEntriesAsync();
+                var entry = entries.FirstOrDefault();
+                return entry is not null && await entry.LaunchAsync();
+            }, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
