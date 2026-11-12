@@ -130,9 +130,15 @@ jobs:
           $selfContained = '${{ steps.package.outputs.self_contained }}'
           $frameworkDependent = '${{ steps.package.outputs.framework_dependent }}'
 
-          gh release create $tag `
-            $selfContained `
-            $frameworkDependent `
-            SHA256SUMS.txt `
-            --title "StoreCrate $version" `
-            --generate-notes
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $tag already exists; uploading artifacts."
+            gh release upload $tag $selfContained $frameworkDependent SHA256SUMS.txt --clobber
+          } else {
+            gh release create $tag `
+              $selfContained `
+              $frameworkDependent `
+              SHA256SUMS.txt `
+              --title "StoreCrate $version" `
+              --generate-notes
+          }
