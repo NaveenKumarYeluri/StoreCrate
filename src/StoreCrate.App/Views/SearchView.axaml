@@ -1,0 +1,137 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StoreCrate.App.ViewModels"
+             xmlns:core="using:StoreCrate.Core.Models"
+             xmlns:controls="using:StoreCrate.App.Controls"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="StoreCrate.App.Views.SearchView"
+             x:DataType="vm:SearchViewModel">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="32,28,32,36" Spacing="16">
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="Search" Classes="h1" />
+        <TextBlock Text="Find any free app in the Microsoft Store catalog." Classes="muted" FontSize="13" />
+      </StackPanel>
+
+      <Grid ColumnDefinitions="*,Auto" MaxWidth="760" HorizontalAlignment="Left">
+        <TextBox Classes="search"
+                 Text="{Binding Query}"
+                 Watermark="Search apps, games, utilities…"
+                 Width="520">
+          <TextBox.KeyBindings>
+            <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}" />
+          </TextBox.KeyBindings>
+        </TextBox>
+        <Button Grid.Column="1"
+                Classes="primary"
+                Content="Search"
+                Margin="10,0,0,0"
+                Command="{Binding SearchCommand}" />
+      </Grid>
+
+      <StackPanel IsVisible="{Binding ShowSuggestions}" Spacing="8" Margin="0,4,0,0">
+        <TextBlock Text="Popular searches" Classes="caption" />
+        <ItemsControl ItemsSource="{Binding Suggestions}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Classes="chip"
+                      Content="{Binding}"
+                      Margin="0,0,8,8"
+                      Command="{Binding $parent[UserControl].DataContext.SearchSuggestionCommand}"
+                      CommandParameter="{Binding}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding IsBusy}" Orientation="Horizontal" Spacing="12" Margin="0,8">
+        <ProgressBar IsIndeterminate="True" Width="160" />
+        <TextBlock Text="Searching the Store…" Classes="muted" FontSize="12.5" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <Border Classes="card" IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Search failed" Classes="h3" />
+          <TextBlock Text="{Binding ErrorMessage}" Classes="error" FontSize="12.5" />
+        </StackPanel>
+      </Border>
+
+      <TextBlock Text="{Binding StatusText}"
+                 Classes="muted"
+                 FontSize="12.5"
+                 IsVisible="{Binding StatusText, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+
+      <Border Classes="card" IsVisible="{Binding ShowEmptyState}">
+        <StackPanel Spacing="6" Margin="4">
+          <TextBlock Text="No apps found" Classes="h3" />
+          <TextBlock Text="Try a shorter name, a publisher, or a category like “photo”."
+                     Classes="muted"
+                     FontSize="12.5" />
+        </StackPanel>
+      </Border>
+
+      <ItemsControl ItemsSource="{Binding Results}" IsVisible="{Binding HasResults}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="core:StoreSearchResult">
+            <Button Classes="card"
+                    Width="352"
+                    Margin="0,0,12,12"
+                    Command="{Binding $parent[UserControl].DataContext.OpenProductCommand}"
+                    CommandParameter="{Binding}">
+              <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="56,*">
+                  <Border Classes="logo" Width="56" Height="56">
+                    <controls:AsyncImage SourceUrl="{Binding LogoUrl}" Stretch="UniformToFill" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock Text="{Binding Title}"
+                               FontWeight="SemiBold"
+                               FontSize="14"
+                               MaxLines="1"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding PublisherText}"
+                               Classes="caption"
+                               MaxLines="1"
+                               TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock Text="{Binding DescriptionText}"
+                           Classes="muted"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           MaxLines="2"
+                           TextTrimming="CharacterEllipsis"
+                           MinHeight="34" />
+
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="★" FontSize="11" Foreground="{DynamicResource StarBrush}" />
+                    <TextBlock Text="{Binding RatingText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding RatingCountText}" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <Border Grid.Column="2" Classes="pill">
+                    <TextBlock Text="{Binding PriceText}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  </Border>
+                </Grid>
+              </StackPanel>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StoreCrate.App.ViewModels"
+             xmlns:core="using:StoreCrate.Core.Models"
+             xmlns:controls="using:StoreCrate.App.Controls"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="StoreCrate.App.Views.DiscoverView"
+             x:DataType="vm:DiscoverViewModel">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="32,28,32,36" Spacing="18">
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="Discover" Classes="h1" />
+        <TextBlock Text="Handpicked free apps from the Microsoft Store — no Store app required."
+                   Classes="muted"
+                   FontSize="13" />
+      </StackPanel>
+
+      <Border Classes="hero" IsVisible="{Binding HasFeatured}">
+        <Grid ColumnDefinitions="*,300">
+          <StackPanel Margin="34,30,24,30" Spacing="10" VerticalAlignment="Center">
+            <Border Background="#33FFFFFF" CornerRadius="20" Padding="10,3" HorizontalAlignment="Left">
+              <TextBlock Text="FEATURED"
+                         FontSize="10"
+                         FontWeight="Bold"
+                         LetterSpacing="1.4"
+                         Foreground="#FFFFFF" />
+            </Border>
+
+            <TextBlock Text="{Binding Featured.Title}"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource HeroTextBrush}"
+                       TextWrapping="Wrap"
+                       MaxLines="2" />
+
+            <TextBlock Text="{Binding Featured.PublisherText}"
+                       Foreground="{DynamicResource HeroSubtleTextBrush}"
+                       FontSize="13" />
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="★" Foreground="#FFD166" FontSize="13" />
+              <TextBlock Text="{Binding Featured.RatingText}" Foreground="#FFFFFF" FontSize="13" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Featured.RatingCountText}" Foreground="{DynamicResource HeroSubtleTextBrush}" FontSize="13" />
+              <TextBlock Text="·" Foreground="{DynamicResource HeroSubtleTextBrush}" FontSize="13" />
+              <TextBlock Text="{Binding Featured.SizeText}" Foreground="{DynamicResource HeroSubtleTextBrush}" FontSize="13" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding Featured.SummaryText}"
+                       Foreground="{DynamicResource HeroSubtleTextBrush}"
+                       TextWrapping="Wrap"
+                       MaxLines="3"
+                       MaxWidth="560"
+                       HorizontalAlignment="Left"
+                       LineHeight="19" />
+
+            <Button Classes="light"
+                    Content="View app"
+                    Command="{Binding OpenFeaturedCommand}"
+                    HorizontalAlignment="Left"
+                    Margin="0,8,0,0" />
+          </StackPanel>
+
+          <Border Grid.Column="1"
+                  Margin="0,26,32,26"
+                  CornerRadius="20"
+                  ClipToBounds="True"
+                  Background="#22FFFFFF">
+            <controls:AsyncImage SourceUrl="{Binding Featured.HeroImageUrl}" Stretch="UniformToFill" />
+          </Border>
+        </Grid>
+      </Border>
+
+      <Border Classes="card"
+              IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Could not reach the Microsoft Store" Classes="h3" />
+          <TextBlock Text="{Binding ErrorMessage}" Classes="error" FontSize="12.5" />
+          <Button Classes="secondary" Content="Try again" Command="{Binding RetryCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel IsVisible="{Binding IsBusy}" Spacing="10" Margin="0,12">
+        <TextBlock Text="Loading apps from the Microsoft Store…" Classes="muted" FontSize="13" />
+        <ProgressBar IsIndeterminate="True" Width="220" HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <ItemsControl ItemsSource="{Binding Sections}" IsVisible="{Binding HasSections}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DiscoverSection">
+            <StackPanel Spacing="10" Margin="0,0,0,20">
+              <TextBlock Text="{Binding Title}" Classes="h2" />
+              <ScrollViewer Classes="horizontal">
+                <ItemsControl ItemsSource="{Binding Items}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="12" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:StoreSearchResult">
+                      <Button Classes="card"
+                              Width="172"
+                              Height="204"
+                              Command="{Binding $parent[UserControl].DataContext.OpenProductCommand}"
+                              CommandParameter="{Binding}">
+                        <StackPanel Spacing="8">
+                          <Border Classes="logo" Width="64" Height="64" HorizontalAlignment="Left">
+                            <controls:AsyncImage SourceUrl="{Binding LogoUrl}" Stretch="UniformToFill" />
+                          </Border>
+
+                          <TextBlock Text="{Binding Title}"
+                                     FontWeight="SemiBold"
+                                     FontSize="13"
+                                     TextWrapping="Wrap"
+                                     MaxLines="2"
+                                     TextTrimming="CharacterEllipsis" />
+
+                          <TextBlock Text="{Binding PublisherText}"
+                                     Classes="caption"
+                                     MaxLines="1"
+                                     TextTrimming="CharacterEllipsis" />
+
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="★" FontSize="11" Foreground="{DynamicResource StarBrush}" />
+                            <TextBlock Text="{Binding RatingText}"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                          </StackPanel>
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -1,0 +1,184 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StoreCrate.App.ViewModels"
+             xmlns:controls="using:StoreCrate.App.Controls"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="StoreCrate.App.Views.DetailsView"
+             x:DataType="vm:DetailsViewModel">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="32,22,32,40" Spacing="16" MaxWidth="1120" HorizontalAlignment="Stretch">
+
+      <Button Classes="link" Command="{Binding GoBackCommand}" Content="← Back" FontSize="13" />
+
+      <StackPanel IsVisible="{Binding IsBusy}" Orientation="Horizontal" Spacing="12" Margin="0,8">
+        <ProgressBar IsIndeterminate="True" Width="160" />
+        <TextBlock Text="Loading app details…" Classes="muted" FontSize="12.5" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <Border Classes="card" IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Something went wrong" Classes="h3" />
+          <TextBlock Text="{Binding ErrorMessage}" Classes="error" FontSize="12.5" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel IsVisible="{Binding HasProduct}" Spacing="16">
+
+        <Border Classes="card" Padding="24">
+          <Grid ColumnDefinitions="132,*">
+            <Border Classes="logo" Width="120" Height="120" CornerRadius="24" VerticalAlignment="Top">
+              <controls:AsyncImage SourceUrl="{Binding Product.LogoUrl}" Stretch="UniformToFill" />
+            </Border>
+
+            <StackPanel Grid.Column="1" Spacing="9" Margin="22,0,0,0">
+              <TextBlock Text="{Binding Product.Title}"
+                         FontSize="28"
+                         FontWeight="Bold"
+                         TextWrapping="Wrap" />
+
+              <TextBlock Text="{Binding Product.PublisherText}" Classes="muted" FontSize="13" />
+
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Border Classes="pill">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="★" FontSize="10.5" Foreground="{DynamicResource StarBrush}" />
+                    <TextBlock Text="{Binding Product.RatingText}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  </StackPanel>
+                </Border>
+                <Border Classes="pill">
+                  <TextBlock Text="{Binding Product.PriceText}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                </Border>
+                <Border Classes="pill">
+                  <TextBlock Text="{Binding Product.PrimaryCategory}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                </Border>
+              </StackPanel>
+
+              <TextBlock Text="{Binding Product.SummaryText}"
+                         Classes="muted"
+                         FontSize="13"
+                         TextWrapping="Wrap"
+                         MaxLines="3"
+                         TextTrimming="CharacterEllipsis"
+                         MaxWidth="760"
+                         HorizontalAlignment="Left" />
+
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
+                <Button Classes="primary"
+                        Content="{Binding InstallButtonText}"
+                        Command="{Binding InstallCommand}"
+                        IsEnabled="{Binding !IsBusy}" />
+                <Button Classes="secondary"
+                        Content="Open"
+                        Command="{Binding OpenCommand}"
+                        IsVisible="{Binding IsInstalled}" />
+                <Button Classes="danger"
+                        Content="Uninstall"
+                        Command="{Binding RequestUninstallCommand}"
+                        IsVisible="{Binding IsInstalled}" />
+              </StackPanel>
+
+              <TextBlock Text="{Binding StatusMessage}"
+                         Classes="caption"
+                         Classes.error="{Binding StatusIsError}"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding StatusMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Border Classes="soft" IsVisible="{Binding ShowUninstallConfirm}">
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <StackPanel Spacing="2" VerticalAlignment="Center">
+              <TextBlock Text="Uninstall this app?" Classes="h3" />
+              <TextBlock Text="The app and its local data will be removed for this Windows user."
+                         Classes="caption" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="danger" Content="Uninstall" Margin="10,0,0,0" Command="{Binding ConfirmUninstallCommand}" />
+            <Button Grid.Column="2" Classes="secondary" Content="Cancel" Margin="10,0,0,0" Command="{Binding CancelUninstallCommand}" />
+          </Grid>
+        </Border>
+
+        <Border Classes="card" IsVisible="{Binding HasScreenshots}">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Screenshots" Classes="h2" />
+            <ScrollViewer Classes="horizontal">
+              <ItemsControl ItemsSource="{Binding Product.ScreenshotUrls}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="12" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Width="380" Height="214" CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SkeletonBrush}">
+                      <controls:AsyncImage SourceUrl="{Binding}" Stretch="UniformToFill" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" IsVisible="{Binding Product.Description, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
+          <StackPanel Spacing="10">
+            <TextBlock Text="About this app" Classes="h2" />
+            <TextBlock Text="{Binding Product.Description}"
+                       FontSize="13"
+                       LineHeight="21"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="14">
+            <TextBlock Text="Details" Classes="h2" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+
+              <StackPanel Spacing="2">
+                <TextBlock Text="Version" Classes="caption" />
+                <TextBlock Text="{Binding Product.VersionText}" Classes="h3" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="2" Margin="24,0,0,0">
+                <TextBlock Text="Download size" Classes="caption" />
+                <TextBlock Text="{Binding Product.SizeText}" Classes="h3" />
+              </StackPanel>
+
+              <StackPanel Grid.Row="1" Spacing="2" Margin="0,14,0,0">
+                <TextBlock Text="Category" Classes="caption" />
+                <TextBlock Text="{Binding Product.PrimaryCategory}" Classes="h3" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2" Margin="24,14,0,0">
+                <TextBlock Text="Architecture" Classes="caption" />
+                <TextBlock Text="{Binding Product.ArchitectureText}" Classes="h3" />
+              </StackPanel>
+
+              <StackPanel Grid.Row="2" Spacing="2" Margin="0,14,0,0">
+                <TextBlock Text="Publisher" Classes="caption" />
+                <TextBlock Text="{Binding Product.PublisherText}" Classes="h3" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="1" Spacing="2" Margin="24,14,0,0">
+                <TextBlock Text="Released" Classes="caption" />
+                <TextBlock Text="{Binding Product.ReleaseDateText}" Classes="h3" />
+              </StackPanel>
+
+              <StackPanel Grid.Row="3" Spacing="2" Margin="0,14,0,0">
+                <TextBlock Text="Product ID" Classes="caption" />
+                <TextBlock Text="{Binding Product.ProductId}" Classes="h3" />
+              </StackPanel>
+              <StackPanel Grid.Row="3" Grid.Column="1" Spacing="2" Margin="24,14,0,0">
+                <TextBlock Text="Package family" Classes="caption" />
+                <TextBlock Text="{Binding Product.PackageFamilyName}" Classes="h3" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
+
+            </Grid>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

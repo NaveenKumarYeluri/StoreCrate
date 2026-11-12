@@ -1,0 +1,154 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StoreCrate.App.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="StoreCrate.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="32,28,32,36" Spacing="16" MaxWidth="900" HorizontalAlignment="Left">
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="Settings" Classes="h1" />
+        <TextBlock Text="Tune how StoreCrate talks to the Store and where packages are staged."
+                   Classes="muted"
+                   FontSize="13" />
+      </StackPanel>
+
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <TextBlock Text="Appearance" Classes="h2" />
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Theme" Classes="h3" />
+              <TextBlock Text="Follow Windows or force light or dark." Classes="caption" />
+            </StackPanel>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding Themes}"
+                      SelectedItem="{Binding Theme}"
+                      Width="180"
+                      HorizontalAlignment="Left" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <TextBlock Text="Store region" Classes="h2" />
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Market" Classes="h3" />
+              <TextBlock Text="Two-letter market code, such as US, GB or IN." Classes="caption" />
+            </StackPanel>
+            <TextBox Grid.Column="1" Text="{Binding Market}" Width="120" HorizontalAlignment="Left" MaxLength="8" />
+          </Grid>
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Language" Classes="h3" />
+              <TextBlock Text="Locale used for catalog text, such as en-US." Classes="caption" />
+            </StackPanel>
+            <TextBox Grid.Column="1" Text="{Binding Locale}" Width="160" HorizontalAlignment="Left" MaxLength="16" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <TextBlock Text="Downloads" Classes="h2" />
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="Staging folder" Classes="h3" />
+            <TextBlock Text="Packages are downloaded here before Windows installs them." Classes="caption" />
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,4,0,0">
+              <TextBox Text="{Binding DownloadDirectory}" />
+              <Button Grid.Column="1" Classes="secondary" Content="Browse…" Margin="8,0,0,0" Command="{Binding BrowseFolderCommand}" />
+              <Button Grid.Column="2" Classes="ghost" Content="Default" Margin="8,0,0,0" Command="{Binding UseDefaultFolderCommand}" />
+              <Button Grid.Column="3" Classes="ghost" Content="Open" Margin="8,0,0,0" Command="{Binding OpenDownloadsFolderCommand}" />
+            </Grid>
+          </StackPanel>
+
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Keep packages" Classes="h3" />
+              <TextBlock Text="Leave downloaded package files on disk after install." Classes="caption" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding KeepDownloadedPackages}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Parallel installs" Classes="h3" />
+              <TextBlock Text="How many products may download at the same time." Classes="caption" />
+            </StackPanel>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding ConcurrencyOptions}"
+                      SelectedItem="{Binding MaxConcurrentDownloads}"
+                      Width="90"
+                      HorizontalAlignment="Left" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <TextBlock Text="Startup" Classes="h2" />
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Check for updates" Classes="h3" />
+              <TextBlock Text="Look for a newer StoreCrate release on GitHub at launch." Classes="caption" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding CheckForUpdatesOnStartup}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <TextBlock Text="About" Classes="h2" />
+          <Grid ColumnDefinitions="240,*">
+            <TextBlock Text="Version" Classes="h3" />
+            <TextBlock Grid.Column="1" Text="{Binding VersionText}" Classes="muted" />
+          </Grid>
+          <Grid ColumnDefinitions="240,*">
+            <TextBlock Text="Source code" Classes="h3" />
+            <Button Grid.Column="1" Classes="link" Content="{Binding RepositoryUrl}" Command="{Binding OpenRepositoryCommand}" />
+          </Grid>
+          <Grid ColumnDefinitions="240,*">
+            <TextBlock Text="Updates" Classes="h3" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+              <Button Classes="secondary" Content="Check now" Command="{Binding CheckForUpdatesCommand}" />
+              <TextBlock Text="{Binding UpdateStatusText}"
+                         Classes="caption"
+                         VerticalAlignment="Center"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding UpdateStatusText, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Grid>
+          <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="10" Padding="12">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Built by Naveen Kumar Yeluri and StoreCrate contributors. MIT licensed."
+                         FontSize="11.5"
+                         Foreground="{DynamicResource TextSecondaryBrush}" />
+              <TextBlock Text="Uses StoreLib for FE3 delivery protocol access. Not affiliated with Microsoft."
+                         FontSize="11.5"
+                         Foreground="{DynamicResource TextTertiaryBrush}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,4,0,0">
+        <Button Classes="primary" Content="Save changes" Command="{Binding SaveCommand}" />
+        <Button Grid.Column="1" Classes="ghost" Content="Reset to defaults" Margin="10,0,0,0" Command="{Binding ResetCommand}" />
+        <TextBlock Grid.Column="3"
+                   Text="{Binding StatusText}"
+                   Classes="caption"
+                   Classes.error="{Binding StatusIsError}"
+                   Margin="10,0,0,0"
+                   VerticalAlignment="Center"
+                   IsVisible="{Binding StatusText, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+      </Grid>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

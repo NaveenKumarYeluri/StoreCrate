@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="StoreCrate.App.Controls.BrandMark"
+             Width="40" Height="40">
+
+  <Viewbox Stretch="Uniform">
+    <Canvas Width="1024" Height="1024">
+      <Rectangle Width="1024" Height="1024" RadiusX="224" RadiusY="224">
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="#4F46E5" />
+            <GradientStop Offset="1" Color="#06B6D4" />
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+
+      <!-- Crate body -->
+      <Path Stroke="#FFFFFF"
+            StrokeThickness="56"
+            StrokeLineCap="Round"
+            Data="M 248,430 L 248,748 A 52,52 0 0 0 300,800 L 724,800 A 52,52 0 0 0 776,748 L 776,430" />
+
+      <!-- Top flanges -->
+      <Path Stroke="#FFFFFF" StrokeThickness="56" StrokeLineCap="Round" Data="M 248,430 L 404,430" />
+      <Path Stroke="#FFFFFF" StrokeThickness="56" StrokeLineCap="Round" Data="M 620,430 L 776,430" />
+
+      <!-- Slats -->
+      <Path Stroke="#B3FFFFFF" StrokeThickness="40" StrokeLineCap="Round" Data="M 260,566 L 764,566" />
+      <Path Stroke="#B3FFFFFF" StrokeThickness="40" StrokeLineCap="Round" Data="M 260,676 L 764,676" />
+
+      <!-- Download arrow -->
+      <Path Stroke="#FFFFFF" StrokeThickness="64" StrokeLineCap="Round" Data="M 512,188 L 512,392" />
+      <Path Fill="#FFFFFF" Data="M 414,368 L 610,368 L 512,500 Z" />
+    </Canvas>
+  </Viewbox>
+</UserControl>

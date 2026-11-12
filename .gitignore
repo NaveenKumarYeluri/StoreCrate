@@ -1,0 +1,64 @@
+## .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+## Build results
+[Dd]ebugPublic/
+[Rr]eleases/
+artifacts/
+publish/
+*.binlog
+*.nupkg
+*.snupkg
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+TestResults/
+
+## NuGet
+*.nuget.props
+*.nuget.targets
+packages/
+!packages/build/
+
+## Rider
+.idea/
+*.sln.iml
+
+## OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+## Local app data / scratch
+scratch/
+*.tmp
+*.log

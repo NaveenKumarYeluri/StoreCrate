@@ -1,0 +1,108 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:StoreCrate.App.ViewModels"
+        xmlns:controls="using:StoreCrate.App.Controls"
+        x:Class="StoreCrate.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="StoreCrate"
+        Width="1200"
+        Height="800"
+        MinWidth="980"
+        MinHeight="660"
+        Icon="avares://StoreCrate/Assets/StoreCrate-256.png"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI">
+
+  <Grid ColumnDefinitions="252,*">
+
+    <Border Grid.Column="0"
+            Background="{DynamicResource SidebarBrush}"
+            BorderBrush="{DynamicResource DividerBrush}"
+            BorderThickness="0,0,1,0">
+      <DockPanel Margin="14,18,14,14">
+
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    Spacing="12"
+                    Margin="6,0,0,24">
+          <controls:BrandMark Width="36" Height="36" VerticalAlignment="Center" />
+          <StackPanel VerticalAlignment="Center" Spacing="1">
+            <TextBlock Text="StoreCrate"
+                       FontSize="17"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Text="Store apps, simplified"
+                       FontSize="11"
+                       Foreground="{DynamicResource TextTertiaryBrush}" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Spacing="8">
+          <Button Classes="ghost"
+                  IsVisible="{Binding HasUpdate}"
+                  Command="{Binding OpenReleaseCommand}"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Left"
+                  Padding="12,10">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Update available" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              <TextBlock Text="{Binding UpdateText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Button>
+
+          <Border Background="{DynamicResource CardBackgroundBrush}"
+                  BorderBrush="{DynamicResource CardBorderBrush}"
+                  BorderThickness="1"
+                  CornerRadius="12"
+                  Padding="12">
+            <StackPanel Spacing="2">
+              <TextBlock Text="{Binding VersionText}" FontSize="11.5" FontWeight="SemiBold" />
+              <TextBlock Text="MIT licensed · unofficial client"
+                         FontSize="10.5"
+                         Foreground="{DynamicResource TextTertiaryBrush}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <ItemsControl ItemsSource="{Binding NavItems}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:NavItem">
+              <Button Classes="nav"
+                      Classes.active="{Binding IsSelected}"
+                      Command="{Binding $parent[Window].DataContext.NavigateCommand}"
+                      CommandParameter="{Binding}"
+                      Margin="0,2">
+                <Grid ColumnDefinitions="24,*,Auto" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Glyph}"
+                             Classes="glyph"
+                             FontSize="16"
+                             VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1"
+                             Text="{Binding Label}"
+                             Margin="10,0,0,0"
+                             VerticalAlignment="Center" />
+                  <Border Grid.Column="2"
+                          IsVisible="{Binding HasBadge}"
+                          Background="{DynamicResource AccentBrush}"
+                          CornerRadius="9"
+                          Padding="6,1"
+                          VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Badge}"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF" />
+                  </Border>
+                </Grid>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+      </DockPanel>
+    </Border>
+
+    <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
+
+  </Grid>
+</Window>

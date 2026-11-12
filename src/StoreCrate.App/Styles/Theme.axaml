@@ -1,0 +1,84 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F4F5FA" />
+      <SolidColorBrush x:Key="SidebarBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="CardBackgroundHoverBrush" Color="#F7F8FC" />
+      <SolidColorBrush x:Key="CardBorderBrush" Color="#E3E6EF" />
+      <SolidColorBrush x:Key="DividerBrush" Color="#E8EAF1" />
+      <SolidColorBrush x:Key="TextPrimaryBrush" Color="#111827" />
+      <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5B6472" />
+      <SolidColorBrush x:Key="TextTertiaryBrush" Color="#98A1B0" />
+      <SolidColorBrush x:Key="AccentBrush" Color="#4F46E5" />
+      <SolidColorBrush x:Key="AccentHoverBrush" Color="#4338CA" />
+      <SolidColorBrush x:Key="AccentPressedBrush" Color="#3730A3" />
+      <SolidColorBrush x:Key="AccentSoftBrush" Color="#ECEDFF" />
+      <SolidColorBrush x:Key="AccentSoftBorderBrush" Color="#D8DAFF" />
+      <SolidColorBrush x:Key="StarBrush" Color="#F59E0B" />
+      <SolidColorBrush x:Key="SuccessBrush" Color="#15803D" />
+      <SolidColorBrush x:Key="WarningBrush" Color="#B45309" />
+      <SolidColorBrush x:Key="DangerBrush" Color="#DC2626" />
+      <SolidColorBrush x:Key="DangerSoftBrush" Color="#FDECEC" />
+      <SolidColorBrush x:Key="OverlayBrush" Color="#66000000" />
+      <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="SkeletonBrush" Color="#E9ECF3" />
+      <SolidColorBrush x:Key="HeroTextBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="HeroSubtleTextBrush" Color="#E6FFFFFF" />
+
+      <LinearGradientBrush x:Key="HeroGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#4F46E5" />
+        <GradientStop Offset="0.55" Color="#4338CA" />
+        <GradientStop Offset="1" Color="#0E7490" />
+      </LinearGradientBrush>
+
+      <LinearGradientBrush x:Key="BrandGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#4F46E5" />
+        <GradientStop Offset="1" Color="#06B6D4" />
+      </LinearGradientBrush>
+    </ResourceDictionary>
+
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0E1116" />
+      <SolidColorBrush x:Key="SidebarBrush" Color="#141821" />
+      <SolidColorBrush x:Key="CardBackgroundBrush" Color="#171C26" />
+      <SolidColorBrush x:Key="CardBackgroundHoverBrush" Color="#1E2430" />
+      <SolidColorBrush x:Key="CardBorderBrush" Color="#262D3A" />
+      <SolidColorBrush x:Key="DividerBrush" Color="#232A36" />
+      <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F3F4F6" />
+      <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A7B0BF" />
+      <SolidColorBrush x:Key="TextTertiaryBrush" Color="#6C7686" />
+      <SolidColorBrush x:Key="AccentBrush" Color="#6366F1" />
+      <SolidColorBrush x:Key="AccentHoverBrush" Color="#818CF8" />
+      <SolidColorBrush x:Key="AccentPressedBrush" Color="#4F46E5" />
+      <SolidColorBrush x:Key="AccentSoftBrush" Color="#232741" />
+      <SolidColorBrush x:Key="AccentSoftBorderBrush" Color="#333A5C" />
+      <SolidColorBrush x:Key="StarBrush" Color="#FBBF24" />
+      <SolidColorBrush x:Key="SuccessBrush" Color="#4ADE80" />
+      <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24" />
+      <SolidColorBrush x:Key="DangerBrush" Color="#F87171" />
+      <SolidColorBrush x:Key="DangerSoftBrush" Color="#3A1D22" />
+      <SolidColorBrush x:Key="OverlayBrush" Color="#99000000" />
+      <SolidColorBrush x:Key="InputBackgroundBrush" Color="#12161E" />
+      <SolidColorBrush x:Key="SkeletonBrush" Color="#232A36" />
+      <SolidColorBrush x:Key="HeroTextBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="HeroSubtleTextBrush" Color="#E6FFFFFF" />
+
+      <LinearGradientBrush x:Key="HeroGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#4338CA" />
+        <GradientStop Offset="0.55" Color="#3730A3" />
+        <GradientStop Offset="1" Color="#0E7490" />
+      </LinearGradientBrush>
+
+      <LinearGradientBrush x:Key="BrandGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#6366F1" />
+        <GradientStop Offset="1" Color="#06B6D4" />
+      </LinearGradientBrush>
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

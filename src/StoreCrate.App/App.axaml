@@ -1,0 +1,26 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             xmlns:local="using:StoreCrate.App"
+             x:Class="StoreCrate.App.App"
+             RequestedThemeVariant="Default">
+
+  <Application.DataTemplates>
+    <local:ViewLocator />
+  </Application.DataTemplates>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://StoreCrate/Styles/Theme.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <sty:FluentAvaloniaTheme PreferSystemTheme="True"
+                             PreferUserAccentColor="True" />
+    <StyleInclude Source="avares://StoreCrate/Styles/Controls.axaml" />
+    <StyleInclude Source="avares://StoreCrate/Styles/AppStyles.axaml" />
+  </Application.Styles>
+</Application>

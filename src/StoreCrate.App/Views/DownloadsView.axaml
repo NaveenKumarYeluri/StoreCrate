@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StoreCrate.App.ViewModels"
+             xmlns:controls="using:StoreCrate.App.Controls"
+             x:Class="StoreCrate.App.Views.DownloadsView"
+             x:DataType="vm:DownloadsViewModel">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="32,28,32,36" Spacing="14">
+
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="4">
+          <TextBlock Text="Downloads" Classes="h1" />
+          <TextBlock Text="Packages are fetched from Microsoft's delivery CDN, then installed with Windows APIs."
+                     Classes="muted"
+                     FontSize="13" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Classes="ghost"
+                  Content="Open folder"
+                  Command="{Binding OpenFolderCommand}" />
+          <Button Classes="secondary"
+                  Content="Clear finished"
+                  Command="{Binding ClearCompletedCommand}"
+                  IsEnabled="{Binding Manager.HasCompleted}" />
+        </StackPanel>
+      </Grid>
+
+      <Border Classes="soft" IsVisible="{Binding Manager.HasActive}" Margin="0,4,0,0">
+        <TextBlock Text="Keep this window open while packages install. Windows may ask you to confirm the installation."
+                   FontSize="12.5"
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextSecondaryBrush}" />
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding !Manager.HasItems}">
+        <StackPanel Spacing="6" Margin="4">
+          <TextBlock Text="Nothing in the queue" Classes="h3" />
+          <TextBlock Text="Open an app from Discover or Search and choose Install. Downloads and installation progress will appear here."
+                     Classes="muted"
+                     FontSize="12.5"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <ItemsControl ItemsSource="{Binding Manager.Items}" IsVisible="{Binding Manager.HasItems}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DownloadItem">
+            <Border Classes="card" Padding="16" Margin="0,0,0,10">
+              <Grid ColumnDefinitions="48,*,Auto">
+
+                <Border Classes="logo" Width="48" Height="48" CornerRadius="12" VerticalAlignment="Top">
+                  <controls:AsyncImage SourceUrl="{Binding LogoUrl}" Stretch="UniformToFill" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Spacing="6" Margin="14,0,0,0">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Title}"
+                               FontWeight="SemiBold"
+                               FontSize="14"
+                               MaxLines="1"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding StatusText}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentBrush}" />
+                  </Grid>
+
+                  <TextBlock Text="{Binding DetailText}"
+                             Classes="caption"
+                             TextWrapping="Wrap"
+                             MaxLines="2" />
+
+                  <ProgressBar Value="{Binding Progress}" Maximum="100" />
+
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding PackageCountText}"
+                               FontSize="10.5"
+                               Foreground="{DynamicResource TextTertiaryBrush}" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding PercentText}"
+                               FontSize="10.5"
+                               Foreground="{DynamicResource TextTertiaryBrush}" />
+                  </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center" Margin="14,0,0,0">
+                  <Button Classes="ghost"
+                          Content="Cancel"
+                          Padding="12,6"
+                          MinHeight="32"
+                          IsVisible="{Binding CanCancel}"
+                          Command="{Binding $parent[UserControl].DataContext.CancelCommand}"
+                          CommandParameter="{Binding}" />
+                  <Button Classes="secondary"
+                          Content="Retry"
+                          Padding="12,6"
+                          MinHeight="32"
+                          IsVisible="{Binding CanRetry}"
+                          Command="{Binding $parent[UserControl].DataContext.RetryCommand}"
+                          CommandParameter="{Binding}" />
+                </StackPanel>
+
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

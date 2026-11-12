@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (for example 0.1.0). Defaults to the VersionPrefix in Directory.Build.props."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build release artifacts
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          } elseif ('${{ inputs.version }}'.Trim() -ne '') {
+            $version = '${{ inputs.version }}'.Trim()
+          } else {
+            [xml]$props = Get-Content Directory.Build.props
+            $version = $props.Project.PropertyGroup.VersionPrefix
+          }
+
+          if ($version -notmatch '^\d+\.\d+\.\d+') {
+            throw "Unsupported version '$version'."
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Building StoreCrate $version"
+
+      - name: Restore
+        run: dotnet restore StoreCrate.sln
+
+      - name: Test
+        run: dotnet test tests/StoreCrate.Core.Tests/StoreCrate.Core.Tests.csproj -c Release
+
+      - name: Publish self-contained build
+        run: >
+          dotnet publish src/StoreCrate.App/StoreCrate.App.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -p:GenerateDocumentationFile=false
+          -o publish/self-contained
+
+      - name: Publish framework-dependent build
+        run: >
+          dotnet publish src/StoreCrate.App/StoreCrate.App.csproj
+          -c Release -r win-x64 --self-contained false
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:PublishSingleFile=false
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -p:GenerateDocumentationFile=false
+          -o publish/framework-dependent
+
+      - name: Package artifacts
+        id: package
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $selfContained = "StoreCrate-$version-win-x64.zip"
+          $frameworkDependent = "StoreCrate-$version-win-x64-framework-dependent.zip"
+
+          Compress-Archive -Path publish/self-contained/* -DestinationPath $selfContained -CompressionLevel Optimal
+          Compress-Archive -Path publish/framework-dependent/* -DestinationPath $frameworkDependent -CompressionLevel Optimal
+
+          $lines = @()
+          foreach ($file in @($selfContained, $frameworkDependent)) {
+            $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            $lines += "$hash  $file"
+          }
+
+          $exe = Join-Path 'publish/self-contained' 'StoreCrate.exe'
+          if (Test-Path $exe) {
+            $lines += "$((Get-FileHash -Path $exe -Algorithm SHA256).Hash.ToLowerInvariant())  self-contained/StoreCrate.exe"
+          }
+
+          $lines | Set-Content -Path SHA256SUMS.txt -Encoding ascii
+
+          "self_contained=$selfContained" >> $env:GITHUB_OUTPUT
+          "framework_dependent=$frameworkDependent" >> $env:GITHUB_OUTPUT
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: StoreCrate-win-x64
+          path: |
+            StoreCrate-*.zip
+            SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $version = '${{ steps.version.outputs.version }}'
+          $selfContained = '${{ steps.package.outputs.self_contained }}'
+          $frameworkDependent = '${{ steps.package.outputs.framework_dependent }}'
+
+          gh release create $tag `
+            $selfContained `
+            $frameworkDependent `
+            SHA256SUMS.txt `
+            --title "StoreCrate $version" `
+            --generate-notes
