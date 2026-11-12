@@ -189,10 +189,11 @@ public sealed partial class DownloadManager : ObservableObject
         }
         catch (Exception ex)
         {
+            var message = ErrorDetails.Describe(ex);
             item.State = DownloadState.Failed;
             item.StatusText = "Failed";
-            item.DetailText = ex.Message;
-            item.ErrorMessage = ex.Message;
+            item.DetailText = message;
+            item.ErrorMessage = message;
         }
         finally
         {

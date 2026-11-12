@@ -34,12 +34,12 @@ internal static class CliApp
         }
         catch (StoreApiException ex)
         {
-            Console.Error.WriteLine($"error: {ex.Message}");
+            Console.Error.WriteLine($"error: {ErrorDetails.Describe(ex)}");
             return 1;
         }
         catch (HttpRequestException ex)
         {
-            Console.Error.WriteLine($"network error: {ex.Message}");
+            Console.Error.WriteLine($"network error: {ErrorDetails.Describe(ex)}");
             return 1;
         }
         catch (OperationCanceledException)

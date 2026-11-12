@@ -58,9 +58,7 @@ public sealed class DownloadService : IDownloadService
             request.Headers.Range = new RangeHeaderValue(existing, null);
         }
 
-        using var response = await _httpClient
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-            .ConfigureAwait(false);
+        using var response = await SendAsync(request, package, cancellationToken).ConfigureAwait(false);
 
         if (response.StatusCode == HttpStatusCode.RequestedRangeNotSatisfiable && existing > 0)
         {
@@ -136,6 +134,23 @@ public sealed class DownloadService : IDownloadService
         _logger?.LogInformation("Downloaded {FileName} ({Bytes} bytes).", fileName, received);
 
         return new DownloadedPackage(package, finalPath, received);
+    }
+
+    private async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        Fe3Package package,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _httpClient
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new StoreApiException($"Could not download {package.Moniker}.", ex);
+        }
     }
 
     private async Task<(string FileName, long? TotalBytes)> ProbeAsync(

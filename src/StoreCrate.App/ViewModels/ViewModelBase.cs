@@ -12,10 +12,13 @@ public abstract partial class ViewModelBase : ObservableObject
 
     public virtual Task OnNavigatedToAsync() => Task.CompletedTask;
 
-    public void ReportError(Exception exception) =>
+    public void ReportError(Exception exception)
+    {
+        var details = StoreCrate.Core.Services.ErrorDetails.Describe(exception);
         ErrorMessage = exception is StoreCrate.Core.Services.StoreApiException
-            ? exception.Message
-            : $"Something went wrong: {exception.Message}";
+            ? details
+            : $"Something went wrong: {details}";
+    }
 
     protected void ClearError() => ErrorMessage = null;
 }

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to build (for example 0.1.0). Defaults to the VersionPrefix in Directory.Build.props."
+        description: "Version to build (for example 0.1.1). Defaults to the VersionPrefix in Directory.Build.props."
         required: false
         type: string
 

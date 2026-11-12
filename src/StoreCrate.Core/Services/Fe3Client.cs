@@ -10,10 +10,17 @@ namespace StoreCrate.Core.Services;
 /// </summary>
 public sealed class Fe3Client : IFe3Client
 {
+    private readonly IFe3Transport _transport;
     private readonly ILogger<Fe3Client>? _logger;
 
     public Fe3Client(ILogger<Fe3Client>? logger = null)
+        : this(new StoreLibFe3Transport(), logger)
     {
+    }
+
+    internal Fe3Client(IFe3Transport transport, ILogger<Fe3Client>? logger = null)
+    {
+        _transport = transport ?? throw new ArgumentNullException(nameof(transport));
         _logger = logger;
     }
 
@@ -29,7 +36,7 @@ public sealed class Fe3Client : IFe3Client
         string xml;
         try
         {
-            xml = await FE3Handler.SyncUpdatesAsync(wuCategoryId).ConfigureAwait(false);
+            xml = await _transport.SyncUpdatesAsync(wuCategoryId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -50,7 +57,7 @@ public sealed class Fe3Client : IFe3Client
             IList<Uri> urls;
             try
             {
-                urls = await FE3Handler
+                urls = await _transport
                     .GetFileUrlsAsync(new[] { entry.UpdateId }, new[] { entry.Revision })
                     .ConfigureAwait(false);
             }
@@ -66,17 +73,18 @@ public sealed class Fe3Client : IFe3Client
                 continue;
             }
 
-            var secureUrl = url.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
-                ? new UriBuilder(url) { Scheme = Uri.UriSchemeHttps, Port = -1 }.Uri
-                : url;
-
+            // FE3 hands out plain-HTTP delivery URLs and Microsoft's own client downloads them as-is.
+            // Upgrading to HTTPS breaks on the bare tlu.dl.delivery.mp.microsoft.com host: its
+            // certificates only cover *.sb.tlu… / *.sf.tlu…, so the CDN serves a fallback certificate
+            // and the handshake fails with SEC_E_WRONG_PRINCIPAL. The payload is a signed package,
+            // which Windows validates during install, so keep the scheme FE3 gave us.
             packages.Add(new Fe3Package
             {
                 UpdateId = entry.UpdateId,
                 Revision = entry.Revision,
                 Moniker = entry.Moniker,
                 PackageType = entry.PackageType,
-                Url = secureUrl.ToString(),
+                Url = url.ToString(),
             });
         }
 
@@ -87,4 +95,21 @@ public sealed class Fe3Client : IFe3Client
 
         return packages;
     }
+}
+
+/// <summary>Thin seam over StoreLib's static FE3 helpers so the client can be tested.</summary>
+internal interface IFe3Transport
+{
+    Task<string> SyncUpdatesAsync(string wuCategoryId);
+
+    Task<IList<Uri>> GetFileUrlsAsync(string[] updateIds, string[] revisions);
+}
+
+internal sealed class StoreLibFe3Transport : IFe3Transport
+{
+    public Task<string> SyncUpdatesAsync(string wuCategoryId) =>
+        FE3Handler.SyncUpdatesAsync(wuCategoryId);
+
+    public Task<IList<Uri>> GetFileUrlsAsync(string[] updateIds, string[] revisions) =>
+        FE3Handler.GetFileUrlsAsync(updateIds, revisions);
 }

@@ -120,7 +120,7 @@ public sealed partial class DetailsViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusIsError = true;
-            StatusMessage = ex.Message;
+            StatusMessage = ErrorDetails.Describe(ex);
         }
         finally
         {
@@ -177,7 +177,7 @@ public sealed partial class DetailsViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusIsError = true;
-            StatusMessage = ex.Message;
+            StatusMessage = ErrorDetails.Describe(ex);
         }
         finally
         {

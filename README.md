@@ -158,8 +158,10 @@ StoreCrate talks to the same public services the Store client uses:
 2. **FE3 delivery (SyncUpdates + GetFileUrls)** lists the packages and their
    CDN URLs for that category. StoreCrate selects the best main package plus
    required framework dependencies for the current architecture.
-3. **Download** streams the signed `.appx`/`.msix` files from Microsoft's HTTPS
-   CDN into a staging folder.
+3. **Download** streams the signed `.appx`/`.msix` files from Microsoft's
+   delivery CDN into a staging folder. FE3 hands out plain-HTTP URLs, which
+   StoreCrate uses as-is; Windows verifies each package's signature during
+   install.
 4. **Install** registers the packages with `Windows.Management.Deployment.
    PackageManager`, falling back to `Add-AppxPackage` through PowerShell.
 
@@ -184,6 +186,7 @@ circumvent DRM.
 |---|---|
 | `0x80073D05` or a deployment error | Close the app if it is running, then retry. Some frameworks require a reboot after first install. |
 | Downloads stall | Check that `*.dl.delivery.mp.microsoft.com` and `store-images.s-microsoft.com` are reachable. |
+| `The SSL connection could not be established` | Builds before 0.1.1 upgraded FE3's plain-HTTP delivery URL to HTTPS. The bare `tlu.dl.delivery.mp.microsoft.com` host has no matching certificate, so the handshake fails. Update to 0.1.1 or later. |
 | Search returns nothing | Verify the market and locale in **Settings** (for example `US` / `en-US`). |
 | Install needs attention | Run StoreCrate as your normal user first. If it still fails, use the CLI to see the full error. |
 
