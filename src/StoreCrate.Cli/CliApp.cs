@@ -183,9 +183,9 @@ internal static class CliApp
 
     private static async Task<int> InstalledAsync(IServiceProvider services, string[] args)
     {
-        var includeSystem = args.Any(a => a is "--all" or "-a");
+        var includeNonStore = args.Any(a => a is "--all" or "-a");
         var installedService = services.GetRequiredService<IInstalledAppService>();
-        var apps = await installedService.GetInstalledAppsAsync(includeSystem);
+        var apps = await installedService.GetInstalledAppsAsync(includeNonStore);
 
         if (apps.Count == 0)
         {
@@ -299,7 +299,7 @@ internal static class CliApp
               storecrate packages <productId>      Resolve packages for this device
               storecrate download <productId>      Download packages without installing
               storecrate install <productId>       Download and install a product
-              storecrate installed [--all]         List installed apps
+              storecrate installed [--all]         List installed apps (--all adds non-Store packages)
               storecrate uninstall <familyName>    Remove an installed app
               storecrate update                    Check for a StoreCrate update
 

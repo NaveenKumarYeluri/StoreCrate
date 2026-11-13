@@ -136,8 +136,35 @@ public static class StoreJsonParser
         };
     }
 
-    public static IReadOnlyList<StoreSearchResult> ParseSearch(string json)
+    /// <summary>
+    /// Reads the product id from a Display Catalog "products/lookup" response. Returns null
+    /// when the catalog contains no product for the requested alternate id.
+    /// </summary>
+    public static string? ParseLookupProductId(string json)
     {
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        if (root.ValueKind != JsonValueKind.Object ||
+            !root.TryGetProperty("Products", out var products) ||
+            products.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        foreach (var product in products.EnumerateArray())
+        {
+            var productId = Str(product, "ProductId");
+            if (!string.IsNullOrEmpty(productId))
+            {
+                return productId;
+            }
+        }
+
+        return null;
+    }
+
+    public static IReadOnlyList<StoreSearchResult> ParseSearch(string json)    {
         using var document = JsonDocument.Parse(json);
 
         if (!TryFindArray(document.RootElement, "SearchResults", 0, out var searchResults))

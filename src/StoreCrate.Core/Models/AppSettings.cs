@@ -18,7 +18,8 @@ public sealed class AppSettings
     /// <summary>Keep downloaded package files after a successful install.</summary>
     public bool KeepDownloadedPackages { get; set; }
 
-    public bool ShowSystemApps { get; set; }
+    /// <summary>Show packages that were not signed by the Microsoft Store (system components, enterprise or sideloaded packages).</summary>
+    public bool ShowNonStoreApps { get; set; }
 
     public int MaxConcurrentDownloads { get; set; } = 2;
 

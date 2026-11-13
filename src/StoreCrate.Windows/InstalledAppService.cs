@@ -16,9 +16,9 @@ public sealed class InstalledAppService : IInstalledAppService
     }
 
     public Task<IReadOnlyList<InstalledApp>> GetInstalledAppsAsync(
-        bool includeSystem = false,
+        bool includeNonStore = false,
         CancellationToken cancellationToken = default) =>
-        Task.Run<IReadOnlyList<InstalledApp>>(() => Enumerate(includeSystem), cancellationToken);
+        Task.Run<IReadOnlyList<InstalledApp>>(() => Enumerate(includeNonStore), cancellationToken);
 
     public Task<InstalledApp?> FindInstalledAsync(
         string packageFamilyName,
@@ -128,7 +128,7 @@ public sealed class InstalledAppService : IInstalledAppService
         }
     }
 
-    private IReadOnlyList<InstalledApp> Enumerate(bool includeSystem)
+    private IReadOnlyList<InstalledApp> Enumerate(bool includeNonStore)
     {
         var manager = new PackageManager();
         var apps = new List<InstalledApp>();
@@ -142,8 +142,11 @@ public sealed class InstalledAppService : IInstalledAppService
                     continue;
                 }
 
-                var isSystem = package.SignatureKind == PackageSignatureKind.System;
-                if (isSystem && !includeSystem)
+                // Anything not Store-signed (inbox components, enterprise or sideloaded
+                // packages) is hidden unless explicitly requested; these are also the
+                // packages the Microsoft Store catalog does not list.
+                var isNonStore = package.SignatureKind != PackageSignatureKind.Store;
+                if (isNonStore && !includeNonStore)
                 {
                     continue;
                 }
@@ -174,7 +177,7 @@ public sealed class InstalledAppService : IInstalledAppService
             Version = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}",
             Publisher = Safe(() => package.PublisherDisplayName),
             InstallLocation = Safe(() => package.InstalledLocation?.Path),
-            IsSystem = Safe(() => package.SignatureKind == PackageSignatureKind.System),
+            IsNonStore = Safe(() => package.SignatureKind != PackageSignatureKind.Store),
         };
     }
 

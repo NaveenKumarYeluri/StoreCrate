@@ -23,4 +23,13 @@ public static class StoreEndpoints
             $"&locale={Uri.EscapeDataString(locale)}" +
             $"&deviceFamily={DeviceFamily}" +
             $"&query={Uri.EscapeDataString(query ?? string.Empty)}");
+
+    /// <summary>Resolves a Store product id from an installed package family name.</summary>
+    public static Uri LookupByPackageFamilyName(string familyName, string market, string locale) =>
+        new(
+            $"{CatalogBase}/products/lookup?alternateId=PackageFamilyName" +
+            $"&Value={Uri.EscapeDataString(familyName)}" +
+            $"&market={Uri.EscapeDataString(market)}" +
+            $"&languages={Uri.EscapeDataString(locale)}" +
+            "&fieldsTemplate=Details");
 }

@@ -101,23 +101,60 @@
 
         <Border Classes="card" IsVisible="{Binding HasScreenshots}">
           <StackPanel Spacing="12">
-            <TextBlock Text="Screenshots" Classes="h2" />
-            <ScrollViewer Classes="horizontal">
-              <ItemsControl ItemsSource="{Binding Product.ScreenshotUrls}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="12" />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Border Width="380" Height="214" CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SkeletonBrush}">
-                      <controls:AsyncImage SourceUrl="{Binding}" Stretch="UniformToFill" />
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Screenshots" Classes="h2" />
+              <TextBlock Grid.Column="1" Text="Click a screenshot to open it in your browser" Classes="caption" VerticalAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Button Classes="secondary"
+                      Width="36"
+                      Height="36"
+                      MinHeight="36"
+                      Padding="0"
+                      Margin="0,0,8,0"
+                      Content="‹"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      VerticalAlignment="Center"
+                      Click="OnScrollLeftClick"
+                      IsEnabled="{Binding HasScreenshots}" />
+              <ScrollViewer x:Name="ScreenshotsScroll" Grid.Column="1" Classes="horizontal">
+                <ItemsControl ItemsSource="{Binding Product.ScreenshotUrls}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="12" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Width="380"
+                              Height="214"
+                              CornerRadius="12"
+                              ClipToBounds="True"
+                              Background="{DynamicResource SkeletonBrush}"
+                              Cursor="Hand"
+                              Tapped="OnScreenshotTapped"
+                              ToolTip.Tip="Open in browser">
+                        <controls:AsyncImage SourceUrl="{Binding}" Stretch="UniformToFill" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+              <Button Classes="secondary"
+                      Grid.Column="2"
+                      Width="36"
+                      Height="36"
+                      MinHeight="36"
+                      Padding="0"
+                      Margin="8,0,0,0"
+                      Content="›"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      VerticalAlignment="Center"
+                      Click="OnScrollRightClick"
+                      IsEnabled="{Binding HasScreenshots}" />
+            </Grid>
           </StackPanel>
         </Border>
 

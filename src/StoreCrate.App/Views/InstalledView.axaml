@@ -27,10 +27,11 @@
                  HorizontalAlignment="Left"
                  MinWidth="320" />
         <ToggleSwitch Grid.Column="1"
-                      Content="Show system apps"
+                      Content="Show non-Store apps"
                       Margin="18,0,0,0"
-                      IsChecked="{Binding IncludeSystem}"
-                      VerticalAlignment="Center" />
+                      IsChecked="{Binding IncludeNonStore}"
+                      VerticalAlignment="Center"
+                      ToolTip.Tip="Also list packages installed outside the Microsoft Store (system components, enterprise or sideloaded apps)." />
       </Grid>
 
       <StackPanel Orientation="Horizontal" Spacing="12">
@@ -62,7 +63,7 @@
       <Border Classes="card" IsVisible="{Binding ShowEmptyState}">
         <StackPanel Spacing="6" Margin="4">
           <TextBlock Text="No apps to show" Classes="h3" />
-          <TextBlock Text="Install something from Discover or Search, or enable system apps above."
+          <TextBlock Text="Install something from Discover or Search, or enable the non-Store filter above."
                      Classes="muted"
                      FontSize="12.5" />
         </StackPanel>

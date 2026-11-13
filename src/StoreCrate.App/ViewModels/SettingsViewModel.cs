@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreCrate.App.Services;
 using StoreCrate.Core.Models;
@@ -28,7 +28,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         _downloadDirectory = settings.DownloadDirectory;
         _keepDownloadedPackages = current.KeepDownloadedPackages;
         _checkForUpdatesOnStartup = current.CheckForUpdatesOnStartup;
-        _showSystemApps = current.ShowSystemApps;
+        _showNonStoreApps = current.ShowNonStoreApps;
         _maxConcurrentDownloads = current.MaxConcurrentDownloads;
     }
 
@@ -61,7 +61,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private bool _checkForUpdatesOnStartup;
 
     [ObservableProperty]
-    private bool _showSystemApps;
+    private bool _showNonStoreApps;
 
     [ObservableProperty]
     private int _maxConcurrentDownloads;
@@ -92,7 +92,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         settings.DownloadDirectory = IsDefaultDirectory(DownloadDirectory) ? null : DownloadDirectory.Trim();
         settings.KeepDownloadedPackages = KeepDownloadedPackages;
         settings.CheckForUpdatesOnStartup = CheckForUpdatesOnStartup;
-        settings.ShowSystemApps = ShowSystemApps;
+        settings.ShowNonStoreApps = ShowNonStoreApps;
         settings.MaxConcurrentDownloads = Math.Clamp(MaxConcurrentDownloads, 1, 4);
 
         await _settings.SaveAsync();
@@ -127,7 +127,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task CheckForUpdatesAsync()
     {
-        UpdateStatusText = "Checking GitHub Releases…";
+        UpdateStatusText = "Checking GitHub Releasesâ€¦";
 
         try
         {
@@ -152,7 +152,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         _settings.Current.DownloadDirectory = defaults.DownloadDirectory;
         _settings.Current.KeepDownloadedPackages = defaults.KeepDownloadedPackages;
         _settings.Current.CheckForUpdatesOnStartup = defaults.CheckForUpdatesOnStartup;
-        _settings.Current.ShowSystemApps = defaults.ShowSystemApps;
+        _settings.Current.ShowNonStoreApps = defaults.ShowNonStoreApps;
         _settings.Current.MaxConcurrentDownloads = defaults.MaxConcurrentDownloads;
 
         await _settings.SaveAsync();
@@ -174,7 +174,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         DownloadDirectory = _settings.DownloadDirectory;
         KeepDownloadedPackages = current.KeepDownloadedPackages;
         CheckForUpdatesOnStartup = current.CheckForUpdatesOnStartup;
-        ShowSystemApps = current.ShowSystemApps;
+        ShowNonStoreApps = current.ShowNonStoreApps;
         MaxConcurrentDownloads = current.MaxConcurrentDownloads;
         StatusText = null;
         UpdateStatusText = null;

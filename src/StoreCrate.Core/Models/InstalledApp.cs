@@ -15,7 +15,8 @@ public sealed record InstalledApp
 
     public string? InstallLocation { get; init; }
 
-    public bool IsSystem { get; init; }
+    /// <summary>True when the package was not signed by the Microsoft Store (system components, enterprise or sideloaded packages).</summary>
+    public bool IsNonStore { get; init; }
 
     public string? ProductId { get; init; }
 

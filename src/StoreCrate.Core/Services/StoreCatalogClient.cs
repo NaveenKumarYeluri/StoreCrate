@@ -45,6 +45,24 @@ public sealed class StoreCatalogClient : IStoreCatalogClient
         return json is null ? null : StoreJsonParser.ParseProduct(json);
     }
 
+    public async Task<string?> GetProductIdByPackageFamilyAsync(
+        string packageFamilyName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(packageFamilyName))
+        {
+            return null;
+        }
+
+        var settings = _settings.Current;
+        var uri = StoreEndpoints.LookupByPackageFamilyName(
+            packageFamilyName.Trim(),
+            settings.Market,
+            settings.Locale);
+        var json = await GetStringAsync(uri, allowNotFound: true, cancellationToken).ConfigureAwait(false);
+        return json is null ? null : StoreJsonParser.ParseLookupProductId(json);
+    }
+
     private async Task<string?> GetStringAsync(Uri uri, bool allowNotFound, CancellationToken cancellationToken)
     {
         const int maxAttempts = 3;

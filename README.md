@@ -190,6 +190,7 @@ circumvent DRM.
 | Downloads stall | Check that `*.dl.delivery.mp.microsoft.com` and `store-images.s-microsoft.com` are reachable. |
 | `The SSL connection could not be established` | Builds before 0.1.1 upgraded FE3's plain-HTTP delivery URL to HTTPS. The bare `tlu.dl.delivery.mp.microsoft.com` host has no matching certificate, so the handshake fails. Update to 0.1.1 or later. |
 | Search returns nothing | Verify the market and locale in **Settings** (for example `US` / `en-US`). |
+| "Store page" says an app is not listed | The Installed page only shows Store-signed packages by default. Packages installed outside the Store (Edge, enterprise or sideloaded MSIX) have no Store catalog entry; enable **Show non-Store apps** to see them. |
 | Install needs attention | Run StoreCrate as your normal user first. If it still fails, use the CLI to see the full error. |
 
 Logs and settings live in `%LOCALAPPDATA%\StoreCrate`.

@@ -15,6 +15,9 @@ public sealed partial class InstalledViewModel : ViewModelBase
     private readonly NavigationService _navigation;
     private List<InstalledApp> _allApps = new();
 
+    /// <summary>Remembers Store lookups per package family so repeated clicks are instant.</summary>
+    private readonly Dictionary<string, string?> _productIdCache = new(StringComparer.OrdinalIgnoreCase);
+
     public InstalledViewModel(
         IInstalledAppService installedApps,
         IStoreCatalogClient catalog,
@@ -25,7 +28,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
         _catalog = catalog;
         _settings = settings;
         _navigation = navigation;
-        _includeSystem = settings.Current.ShowSystemApps;
+        _includeNonStore = settings.Current.ShowNonStoreApps;
     }
 
     public ObservableCollection<InstalledAppRow> Apps { get; } = new();
@@ -34,7 +37,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
     private string _filter = string.Empty;
 
     [ObservableProperty]
-    private bool _includeSystem;
+    private bool _includeNonStore;
 
     [ObservableProperty]
     private string? _statusText;
@@ -77,7 +80,7 @@ public sealed partial class InstalledViewModel : ViewModelBase
     /// <summary>Re-reads the package list without the re-entrancy guard used by the command.</summary>
     private async Task ReloadAsync()
     {
-        _allApps = (await _installedApps.GetInstalledAppsAsync(IncludeSystem)).ToList();
+        _allApps = (await _installedApps.GetInstalledAppsAsync(IncludeNonStore)).ToList();
         ApplyFilter();
         StatusText = _allApps.Count == 1 ? "1 app installed" : $"{_allApps.Count} apps installed";
     }
@@ -168,23 +171,27 @@ public sealed partial class InstalledViewModel : ViewModelBase
         }
 
         row.IsBusy = true;
-        StatusText = $"Looking up {row.DisplayName} in the Store…";
+        StatusText = $"Looking up {row.DisplayName}…";
 
         try
         {
-            var results = await _catalog.SearchAsync(row.DisplayName);
-            var match = results.FirstOrDefault(result =>
-                            result.PackageFamilyNames.Any(familyName =>
-                                string.Equals(familyName, row.PackageFamilyName, StringComparison.OrdinalIgnoreCase)))
-                        ?? results.FirstOrDefault();
+            var familyName = row.PackageFamilyName;
 
-            if (match is null)
+            if (!_productIdCache.TryGetValue(familyName, out var productId))
             {
-                StatusText = $"{row.DisplayName} was not found in the Microsoft Store.";
+                productId = await _catalog.GetProductIdByPackageFamilyAsync(familyName);
+                _productIdCache[familyName] = productId;
+            }
+
+            if (productId is null)
+            {
+                StatusText =
+                    $"{row.DisplayName} is not listed in the Microsoft Store on this device. " +
+                    "It was installed outside the Store or has been removed from the catalog.";
                 return;
             }
 
-            _navigation.ShowProduct(match.ProductId);
+            _navigation.ShowProduct(productId);
         }
         catch (Exception ex)
         {
@@ -198,9 +205,9 @@ public sealed partial class InstalledViewModel : ViewModelBase
 
     partial void OnFilterChanged(string value) => ApplyFilter();
 
-    partial void OnIncludeSystemChanged(bool value)
+    partial void OnIncludeNonStoreChanged(bool value)
     {
-        _settings.Current.ShowSystemApps = value;
+        _settings.Current.ShowNonStoreApps = value;
         _ = _settings.SaveAsync();
         _ = RefreshAsync();
     }

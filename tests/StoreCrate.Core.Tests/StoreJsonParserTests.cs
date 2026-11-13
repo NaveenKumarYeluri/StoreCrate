@@ -192,3 +192,50 @@ public class StoreJsonParserTests
         Assert.Equal("Short text", product.Description);
     }
 }
+
+public class StoreJsonParserLookupTests
+{
+    [Fact]
+    public void ParseLookupProductId_ReturnsFirstProductId()
+    {
+        const string json = """
+            {
+              "Products": [
+                { "ProductId": "9WZDNCRFHVN5", "LocalizedProperties": [ { "ProductTitle": "Windows Calculator" } ] }
+              ],
+              "TotalResultCount": 1
+            }
+            """;
+
+        Assert.Equal("9WZDNCRFHVN5", StoreJsonParser.ParseLookupProductId(json));
+    }
+
+    [Fact]
+    public void ParseLookupProductId_ReturnsNullForEmptyProducts()
+    {
+        const string json = """{ "Products": [], "TotalResultCount": 0 }""";
+        Assert.Null(StoreJsonParser.ParseLookupProductId(json));
+    }
+
+    [Fact]
+    public void ParseLookupProductId_ReturnsNullForMissingProducts()
+    {
+        const string json = """{ "$type": "PackageManifestResponse" }""";
+        Assert.Null(StoreJsonParser.ParseLookupProductId(json));
+    }
+
+    [Fact]
+    public void ParseLookupProductId_SkipsEntriesWithoutId()
+    {
+        const string json = """
+            {
+              "Products": [
+                { "LocalizedProperties": [ { "ProductTitle": "No id" } ] },
+                { "ProductId": "9PFXCD722M2C" }
+              ]
+            }
+            """;
+
+        Assert.Equal("9PFXCD722M2C", StoreJsonParser.ParseLookupProductId(json));
+    }
+}
