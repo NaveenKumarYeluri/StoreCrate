@@ -107,7 +107,7 @@
           <StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Screenshots" Classes="h2" />
-              <TextBlock Grid.Column="1" Text="Click a screenshot to open it in your browser" Classes="caption" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="Click a screenshot to view it full size" Classes="caption" VerticalAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*,Auto">
               <Button Classes="secondary"
@@ -138,7 +138,7 @@
                               Background="{DynamicResource SkeletonBrush}"
                               Cursor="Hand"
                               Tapped="OnScreenshotTapped"
-                              ToolTip.Tip="Open in browser">
+                              ToolTip.Tip="View full size">
                         <controls:AsyncImage SourceUrl="{Binding}" Stretch="UniformToFill" />
                       </Border>
                     </DataTemplate>

@@ -4,7 +4,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
+using StoreCrate.App.Controls;
 using StoreCrate.App.Services;
+using StoreCrate.App.ViewModels;
 
 namespace StoreCrate.App.Views;
 
@@ -56,9 +58,35 @@ public partial class DetailsView : UserControl
 
     private void OnScreenshotTapped(object? sender, TappedEventArgs args)
     {
-        if (sender is Control { DataContext: string url })
+        if (sender is not Control { DataContext: string url })
         {
-            AppServices.Get<DialogService>().OpenUrl(url);
+            return;
+        }
+
+        if (DataContext is not DetailsViewModel { Product: { } product } || TopLevel.GetTopLevel(this) is not { } topLevel)
+        {
+            return;
+        }
+
+        var urls = product.ScreenshotUrls;
+        var index = 0;
+        for (var i = 0; i < urls.Count; i++)
+        {
+            if (string.Equals(urls[i], url, StringComparison.Ordinal))
+            {
+                index = i;
+                break;
+            }
+        }
+
+        var viewer = new ImageViewerWindow(urls, index);
+        if (topLevel is Window owner)
+        {
+            viewer.Show(owner);
+        }
+        else
+        {
+            viewer.Show();
         }
     }
 
