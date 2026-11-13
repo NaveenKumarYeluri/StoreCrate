@@ -20,6 +20,7 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         AppServices.Initialize();
 
         var settings = AppServices.Get<ISettingsService>();
@@ -27,10 +28,21 @@ public partial class App : Application
         {
             settings.LoadAsync().GetAwaiter().GetResult();
         }
-        catch
+        catch (Exception ex)
         {
-            // Defaults are used when settings cannot be loaded.
+            Core.Logging.AppLog.Warning($"Settings could not be loaded; using defaults. {ex.Message}", ex);
         }
+
+        Core.Logging.AppLog.Info($"Startup: services ready in {stopwatch.ElapsedMilliseconds} ms (theme: {settings.Current.Theme})");
+
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            Core.Logging.AppLog.Error("Unhandled exception", args.ExceptionObject as Exception);
+
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            Core.Logging.AppLog.Error("Unobserved task exception", args.Exception);
+            args.SetObserved();
+        };
 
         ApplyTheme(settings.Current.Theme);
 
@@ -38,6 +50,8 @@ public partial class App : Application
         {
             var viewModel = AppServices.Get<MainWindowViewModel>();
             desktop.MainWindow = new MainWindow { DataContext = viewModel };
+            desktop.MainWindow.Opened += (_, _) =>
+                Core.Logging.AppLog.Info($"Startup: window shown after {stopwatch.ElapsedMilliseconds} ms");
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }
 

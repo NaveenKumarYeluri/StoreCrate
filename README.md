@@ -195,8 +195,9 @@ circumvent DRM.
 | Search returns nothing | Verify the market and locale in **Settings** (for example `US` / `en-US`). |
 | "Store page" says an app is not listed | The Installed page only shows Store-signed packages by default. Packages installed outside the Store (Edge, enterprise or sideloaded MSIX) have no Store catalog entry; enable **Show non-Store apps** to see them. |
 | Install needs attention | Run StoreCrate as your normal user first. If it still fails, use the CLI to see the full error. |
+| App details pages never load, or the app feels slow at startup | Check the log at `%LOCALAPPDATA%\StoreCrate\logs` — every catalog request, delivery call, download, and unhandled exception is recorded with timings. |
 
-Logs and settings live in `%LOCALAPPDATA%\StoreCrate`.
+Logs and settings live in `%LOCALAPPDATA%\StoreCrate`. Daily log files are kept for seven days in the `logs` subfolder.
 
 ## Credits
 

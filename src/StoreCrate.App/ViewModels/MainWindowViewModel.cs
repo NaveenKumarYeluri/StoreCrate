@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using StoreCrate.App.Services;
+using StoreCrate.Core.Logging;
 using StoreCrate.Core.Services;
 
 namespace StoreCrate.App.ViewModels;
@@ -183,12 +183,18 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         CanGoBack = true;
         CurrentPage = details;
 
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        AppLog.Info($"Details requested for product {productId}.");
         try
         {
             await details.LoadAsync(productId);
+            AppLog.Info(
+                $"Details for {productId} loaded in {stopwatch.ElapsedMilliseconds} ms " +
+                $"(product={(details.Product?.Title ?? "not found")}).");
         }
         catch (Exception ex)
         {
+            AppLog.Error($"Details for {productId} failed after {stopwatch.ElapsedMilliseconds} ms.", ex);
             details.ReportError(ex);
         }
     }
@@ -276,13 +282,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Update check failed: {ex.Message}");
+            AppLog.Warning("StoreCrate update check failed.", ex);
         }
     }
 
     /// <summary>
     /// Checks every installed Store app for a newer catalog version and queues the
     /// downloads, mirroring the Microsoft Store's automatic update behavior.
+    /// A single failed lookup or delivery call must not abort the remaining apps.
     /// </summary>
     private async Task AutoUpdateAppsAsync()
     {
@@ -296,34 +303,43 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             var resolver = _services.GetRequiredService<IPackageResolver>();
 
             var apps = await installed.GetInstalledAppsAsync();
+            AppLog.Info($"Automatic app update: checking {apps.Count} installed apps.");
             var updates = await appUpdates.CheckForUpdatesAsync(apps);
             if (updates.Count == 0)
             {
+                AppLog.Info("Automatic app update: everything is up to date.");
                 return;
             }
 
+            AppLog.Info($"Automatic app update: {updates.Count} app(s) have newer versions.");
             var queued = 0;
             foreach (var update in updates)
             {
                 if (string.IsNullOrWhiteSpace(update.Product.WuCategoryId))
                 {
+                    AppLog.Info($"Automatic app update: {update.Product.Title} has no delivery category; skipped.");
                     continue;
                 }
 
-                var packages = await fe3.GetPackagesAsync(update.Product.WuCategoryId);
-                var plan = resolver.Resolve(update.Product, packages);
-                _downloads.Enqueue(plan);
-                queued++;
+                try
+                {
+                    var packages = await fe3.GetPackagesAsync(update.Product.WuCategoryId);
+                    var plan = resolver.Resolve(update.Product, packages);
+                    _downloads.Enqueue(plan);
+                    queued++;
+                    AppLog.Info($"Automatic app update: queued {update.Product.Title} ({plan.AllPackages.Count} package(s)).");
+                }
+                catch (Exception ex)
+                {
+                    AppLog.Warning($"Automatic app update: could not resolve {update.Product.Title}.", ex);
+                }
             }
 
-            if (queued > 0)
-            {
-                Debug.WriteLine($"Queued {queued} app update(s).");
-            }
+            AppLog.Info($"Automatic app update: {queued} update(s) queued.");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"App update check failed: {ex.Message}");
+            AppLog.Warning("Automatic app update check failed.", ex);
         }
     }
 }

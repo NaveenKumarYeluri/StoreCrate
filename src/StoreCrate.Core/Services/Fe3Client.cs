@@ -34,14 +34,18 @@ public sealed class Fe3Client : IFe3Client
         }
 
         string xml;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             xml = await _transport.SyncUpdatesAsync(wuCategoryId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
+            _logger?.LogWarning(ex, "FE3 SyncUpdates for {Category} failed after {Elapsed} ms.", wuCategoryId, stopwatch.ElapsedMilliseconds);
             throw new StoreApiException("The Microsoft Store delivery service did not respond. Try again later.", ex);
         }
+
+        _logger?.LogInformation("FE3 SyncUpdates for {Category} returned {Length} bytes in {Elapsed} ms.", wuCategoryId, xml.Length, stopwatch.ElapsedMilliseconds);
 
         var entries = Fe3ResponseParser.Parse(xml);
         if (entries.Count == 0)

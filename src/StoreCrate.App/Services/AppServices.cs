@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StoreCrate.App.Services;
 using StoreCrate.App.ViewModels;
+using StoreCrate.Core.Logging;
 using StoreCrate.Core.Services;
 using StoreCrate.Windows;
 
@@ -24,8 +25,19 @@ public static class AppServices
             return;
         }
 
+        AppLog.Initialize();
+
         var services = new ServiceCollection();
-        services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
+        services.AddLogging(builder =>
+        {
+            builder.SetMinimumLevel(LogLevel.Information);
+            builder.AddProvider(new FileLoggerProvider());
+
+            // Microsoft's HttpClient logging logs every request twice at Information;
+            // the catalog client already logs requests once with useful durations.
+            builder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+            builder.AddFilter("Microsoft.Extensions.Http", LogLevel.Warning);
+        });
 
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IFe3Client, Fe3Client>();
@@ -36,7 +48,9 @@ public static class AppServices
 
         services.AddHttpClient<IStoreCatalogClient, StoreCatalogClient>(client =>
         {
-            client.Timeout = TimeSpan.FromSeconds(60);
+            // Short enough that a hung catalog request surfaces as a readable error
+            // instead of a details page that appears to never load.
+            client.Timeout = TimeSpan.FromSeconds(20);
         });
 
         services.AddHttpClient<IDownloadService, DownloadService>(client =>

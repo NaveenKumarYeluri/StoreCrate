@@ -66,6 +66,7 @@ public sealed class StoreCatalogClient : IStoreCatalogClient
     private async Task<string?> GetStringAsync(Uri uri, bool allowNotFound, CancellationToken cancellationToken)
     {
         const int maxAttempts = 3;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
             try
@@ -80,12 +81,13 @@ public sealed class StoreCatalogClient : IStoreCatalogClient
 
                 if (response.StatusCode == HttpStatusCode.NotFound && allowNotFound)
                 {
+                    _logger?.LogInformation("Store {Uri} -> 404 (not listed) in {Elapsed} ms.", uri, stopwatch.ElapsedMilliseconds);
                     return null;
                 }
 
                 if (response.StatusCode == HttpStatusCode.TooManyRequests || (int)response.StatusCode >= 500)
                 {
-                    _logger?.LogWarning("Store request to {Uri} returned {Status} (attempt {Attempt}).", uri, response.StatusCode, attempt);
+                    _logger?.LogWarning("Store request to {Uri} returned {Status} (attempt {Attempt}, {Elapsed} ms).", uri, response.StatusCode, attempt, stopwatch.ElapsedMilliseconds);
                     if (attempt == maxAttempts)
                     {
                         response.EnsureSuccessStatusCode();
@@ -97,11 +99,12 @@ public sealed class StoreCatalogClient : IStoreCatalogClient
                 }
 
                 response.EnsureSuccessStatusCode();
+                _logger?.LogInformation("Store {Uri} -> {Status} in {Elapsed} ms.", uri, (int)response.StatusCode, stopwatch.ElapsedMilliseconds);
                 return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (HttpRequestException ex) when (attempt < maxAttempts)
             {
-                _logger?.LogWarning(ex, "Store request to {Uri} failed (attempt {Attempt}).", uri, attempt);
+                _logger?.LogWarning(ex, "Store request to {Uri} failed (attempt {Attempt}, {Elapsed} ms).", uri, attempt, stopwatch.ElapsedMilliseconds);
                 await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt * attempt), cancellationToken)
                     .ConfigureAwait(false);
             }

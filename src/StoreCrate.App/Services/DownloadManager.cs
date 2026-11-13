@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using StoreCrate.App.ViewModels;
+using StoreCrate.Core.Logging;
 using StoreCrate.Core.Models;
 using StoreCrate.Core.Services;
 
@@ -190,6 +191,7 @@ public sealed partial class DownloadManager : ObservableObject
         catch (Exception ex)
         {
             var message = ErrorDetails.Describe(ex);
+            AppLog.Error($"Download for {item.ProductId} failed: {message}", ex);
             item.State = DownloadState.Failed;
             item.StatusText = "Failed";
             item.DetailText = message;

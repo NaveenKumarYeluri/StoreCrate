@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreCrate.App.Services;
+using StoreCrate.Core.Logging;
 using StoreCrate.Core.Models;
 using StoreCrate.Core.Services;
 
@@ -83,6 +84,7 @@ public sealed partial class DetailsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            Core.Logging.AppLog.Error($"Details load for product {productId} failed.", ex);
             ReportError(ex);
         }
         finally
@@ -187,6 +189,9 @@ public sealed partial class DetailsViewModel : ViewModelBase
 
     [RelayCommand]
     private void GoBack() => _navigation.Back();
+
+    [RelayCommand]
+    private Task RetryAsync() => LoadAsync(ProductId);
 
     private async Task RefreshInstalledStateAsync()
     {

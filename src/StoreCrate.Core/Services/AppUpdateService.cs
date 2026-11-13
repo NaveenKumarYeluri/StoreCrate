@@ -40,6 +40,8 @@ public sealed class AppUpdateService : IAppUpdateService
 
         var updates = new ConcurrentBag<AppUpdate>();
 
+        _logger?.LogInformation("Update check: {Count} eligible app(s).", candidates.Count);
+
         foreach (var batch in candidates.Chunk(MaxConcurrency))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -62,9 +64,12 @@ public sealed class AppUpdateService : IAppUpdateService
             }, cancellationToken))).ConfigureAwait(false);
         }
 
-        return updates
+        var found = updates
             .OrderBy(u => u.App.DisplayName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+
+        _logger?.LogInformation("Update check finished: {Count} update(s) found.", found.Count);
+        return found;
     }
 
     private async Task<AppUpdate?> CheckAppAsync(
