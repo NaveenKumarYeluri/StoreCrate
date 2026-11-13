@@ -80,10 +80,20 @@ public sealed class DownloadService : IDownloadService
             existing = 0;
         }
 
-        var total = probedTotal;
-        if (total is null && response.Content.Headers.ContentLength is { } contentLength)
+        // Determine total size with priority: Content-Range.Length > ContentLength+existing > probedTotal.
+        // Re-derive total from the actual response's Content-Range, which is authoritative.
+        long? total;
+        if (response.Content.Headers.ContentRange?.Length is { } rangeTotal)
+        {
+            total = rangeTotal;
+        }
+        else if (response.Content.Headers.ContentLength is { } contentLength)
         {
             total = contentLength + existing;
+        }
+        else
+        {
+            total = probedTotal;
         }
 
         var received = existing;

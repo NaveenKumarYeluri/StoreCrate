@@ -22,12 +22,14 @@ public static class UninstallRunner
         ArgumentNullException.ThrowIfNull(app);
 
         var uninstall = installedApps.UninstallAsync(app);
-        var removed = WaitUntilRemovedAsync(installedApps, app, timeout ?? DefaultTimeout);
+        using var pollCts = new CancellationTokenSource();
+        var removed = WaitUntilRemovedAsync(installedApps, app, timeout ?? DefaultTimeout, pollCts.Token);
 
         var first = await Task.WhenAny(uninstall, removed);
 
         if (first == uninstall)
         {
+            pollCts.Cancel();
             return await uninstall;
         }
 
@@ -45,13 +47,21 @@ public static class UninstallRunner
     private static async Task<bool> WaitUntilRemovedAsync(
         IInstalledAppService installedApps,
         InstalledApp app,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
     {
         var deadline = DateTime.UtcNow + timeout;
 
         while (DateTime.UtcNow < deadline)
         {
-            await Task.Delay(PollInterval).ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(PollInterval, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
 
             try
             {
