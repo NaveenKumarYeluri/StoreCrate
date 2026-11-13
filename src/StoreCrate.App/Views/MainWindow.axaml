@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:StoreCrate.App.ViewModels"
         xmlns:controls="using:StoreCrate.App.Controls"
+        xmlns:conv="using:Avalonia.Data.Converters"
         x:Class="StoreCrate.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="StoreCrate"
@@ -39,17 +40,28 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Spacing="8">
-          <Button Classes="ghost"
-                  IsVisible="{Binding HasUpdate}"
-                  Command="{Binding OpenReleaseCommand}"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Left"
-                  Padding="12,10">
-            <StackPanel Spacing="2">
-              <TextBlock Text="Update available" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-              <TextBlock Text="{Binding UpdateText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
-            </StackPanel>
-          </Button>
+          <StackPanel IsVisible="{Binding HasUpdate}" Spacing="6">
+            <Button Classes="ghost"
+                    Command="{Binding OpenReleaseCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    Padding="12,10">
+              <StackPanel Spacing="2">
+                <TextBlock Text="Update available" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{Binding UpdateText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+            </Button>
+            <Button Classes="primary"
+                    Content="{Binding InstallUpdateText}"
+                    Command="{Binding InstallUpdateCommand}"
+                    IsEnabled="{Binding !IsInstallingUpdate}"
+                    HorizontalAlignment="Stretch" />
+            <TextBlock Text="{Binding UpdateStateText}"
+                       FontSize="10.5"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding UpdateStateText, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
 
           <Border Background="{DynamicResource CardBackgroundBrush}"
                   BorderBrush="{DynamicResource CardBorderBrush}"

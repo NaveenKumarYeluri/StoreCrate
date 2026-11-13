@@ -15,6 +15,9 @@ public sealed class AppSettings
 
     public bool CheckForUpdatesOnStartup { get; set; } = true;
 
+    /// <summary>Automatically check installed Store apps for newer versions and queue the downloads.</summary>
+    public bool AutomaticallyUpdateApps { get; set; } = true;
+
     /// <summary>Keep downloaded package files after a successful install.</summary>
     public bool KeepDownloadedPackages { get; set; }
 

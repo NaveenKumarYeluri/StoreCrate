@@ -57,6 +57,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             _ = CheckForUpdatesAsync();
         }
+
+        if (settings.Current.AutomaticallyUpdateApps)
+        {
+            _ = AutoUpdateAppsAsync();
+        }
     }
 
     public ObservableCollection<NavItem> NavItems { get; }
@@ -76,7 +81,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string? _updateUrl;
 
+    [ObservableProperty]
+    private bool _isInstallingUpdate;
+
+    [ObservableProperty]
+    private string? _updateStateText;
+
+    partial void OnIsInstallingUpdateChanged(bool value) => OnPropertyChanged(nameof(InstallUpdateText));
+
+    private AppUpdateInfo? _update;
+
     public string VersionText => $"StoreCrate {AppInfo.VersionString}";
+
+    public string InstallUpdateText => IsInstallingUpdate ? "Updating…" : "Install update";
 
     public string RepositoryUrl => AppInfo.RepositoryUrl;
 
@@ -108,6 +125,33 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(UpdateUrl))
         {
             _services.GetRequiredService<DialogService>().OpenUrl(UpdateUrl);
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallUpdateAsync()
+    {
+        if (_update?.DownloadUrl is null || IsInstallingUpdate)
+        {
+            return;
+        }
+
+        IsInstallingUpdate = true;
+        UpdateStateText = "Downloading update…";
+
+        try
+        {
+            var selfUpdate = _services.GetRequiredService<SelfUpdateService>();
+            await selfUpdate.DownloadAndStageAsync(_update);
+            selfUpdate.ApplyOnExit();
+            UpdateStateText = "Update ready. StoreCrate will restart.";
+            await Task.Delay(600);
+            Environment.Exit(0);
+        }
+        catch (Exception ex)
+        {
+            UpdateStateText = $"Update failed: {ex.Message}";
+            IsInstallingUpdate = false;
         }
     }
 
@@ -225,6 +269,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
+            _update = update;
             UpdateText = $"Version {update.Tag} is available";
             UpdateUrl = update.ReleaseUrl;
             HasUpdate = true;
@@ -232,6 +277,53 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             Debug.WriteLine($"Update check failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Checks every installed Store app for a newer catalog version and queues the
+    /// downloads, mirroring the Microsoft Store's automatic update behavior.
+    /// </summary>
+    private async Task AutoUpdateAppsAsync()
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
+            var installed = _services.GetRequiredService<IInstalledAppService>();
+            var appUpdates = _services.GetRequiredService<IAppUpdateService>();
+            var fe3 = _services.GetRequiredService<IFe3Client>();
+            var resolver = _services.GetRequiredService<IPackageResolver>();
+
+            var apps = await installed.GetInstalledAppsAsync();
+            var updates = await appUpdates.CheckForUpdatesAsync(apps);
+            if (updates.Count == 0)
+            {
+                return;
+            }
+
+            var queued = 0;
+            foreach (var update in updates)
+            {
+                if (string.IsNullOrWhiteSpace(update.Product.WuCategoryId))
+                {
+                    continue;
+                }
+
+                var packages = await fe3.GetPackagesAsync(update.Product.WuCategoryId);
+                var plan = resolver.Resolve(update.Product, packages);
+                _downloads.Enqueue(plan);
+                queued++;
+            }
+
+            if (queued > 0)
+            {
+                Debug.WriteLine($"Queued {queued} app update(s).");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"App update check failed: {ex.Message}");
         }
     }
 }

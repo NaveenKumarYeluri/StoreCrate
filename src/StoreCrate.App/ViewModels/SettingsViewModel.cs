@@ -28,6 +28,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         _downloadDirectory = settings.DownloadDirectory;
         _keepDownloadedPackages = current.KeepDownloadedPackages;
         _checkForUpdatesOnStartup = current.CheckForUpdatesOnStartup;
+        _automaticallyUpdateApps = current.AutomaticallyUpdateApps;
         _showNonStoreApps = current.ShowNonStoreApps;
         _maxConcurrentDownloads = current.MaxConcurrentDownloads;
     }
@@ -61,6 +62,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private bool _checkForUpdatesOnStartup;
 
     [ObservableProperty]
+    private bool _automaticallyUpdateApps;
+
+    [ObservableProperty]
     private bool _showNonStoreApps;
 
     [ObservableProperty]
@@ -92,6 +96,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         settings.DownloadDirectory = IsDefaultDirectory(DownloadDirectory) ? null : DownloadDirectory.Trim();
         settings.KeepDownloadedPackages = KeepDownloadedPackages;
         settings.CheckForUpdatesOnStartup = CheckForUpdatesOnStartup;
+        settings.AutomaticallyUpdateApps = AutomaticallyUpdateApps;
         settings.ShowNonStoreApps = ShowNonStoreApps;
         settings.MaxConcurrentDownloads = Math.Clamp(MaxConcurrentDownloads, 1, 4);
 
@@ -152,6 +157,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         _settings.Current.DownloadDirectory = defaults.DownloadDirectory;
         _settings.Current.KeepDownloadedPackages = defaults.KeepDownloadedPackages;
         _settings.Current.CheckForUpdatesOnStartup = defaults.CheckForUpdatesOnStartup;
+        _settings.Current.AutomaticallyUpdateApps = defaults.AutomaticallyUpdateApps;
         _settings.Current.ShowNonStoreApps = defaults.ShowNonStoreApps;
         _settings.Current.MaxConcurrentDownloads = defaults.MaxConcurrentDownloads;
 
@@ -174,6 +180,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         DownloadDirectory = _settings.DownloadDirectory;
         KeepDownloadedPackages = current.KeepDownloadedPackages;
         CheckForUpdatesOnStartup = current.CheckForUpdatesOnStartup;
+        AutomaticallyUpdateApps = current.AutomaticallyUpdateApps;
         ShowNonStoreApps = current.ShowNonStoreApps;
         MaxConcurrentDownloads = current.MaxConcurrentDownloads;
         StatusText = null;

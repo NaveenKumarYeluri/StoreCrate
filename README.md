@@ -45,9 +45,12 @@ endorsed by, or supported by Microsoft.
 - **Install / launch / uninstall** — uses `PackageManager` first, with an
   `Add-AppxPackage` fallback for difficult images.
 - **Installed apps** — filter, launch, jump to the Store page, or remove apps.
+- **App updates** — one-click updates for installed apps from the Installed page,
+  or fully automatic checks at launch (can be turned off in Settings).
+- **Self-update** — one click downloads a newer StoreCrate release, swaps the
+  binary and restarts the app.
 - **Settings** — theme, market/locale, staging folder, concurrency, and update
   checks.
-- **Automatic update check** — compares against GitHub Releases.
 - **CLI** — the same pipeline, scriptable for troubleshooting.
 
 ## Requirements

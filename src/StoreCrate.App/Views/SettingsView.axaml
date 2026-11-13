@@ -99,6 +99,13 @@
             </StackPanel>
             <ToggleSwitch Grid.Column="1" IsChecked="{Binding CheckForUpdatesOnStartup}" />
           </Grid>
+          <Grid ColumnDefinitions="240,*">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Update installed apps automatically" Classes="h3" />
+              <TextBlock Text="Check installed apps against the Store catalog at launch and queue newer versions for download." Classes="caption" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutomaticallyUpdateApps}" />
+          </Grid>
         </StackPanel>
       </Border>
 

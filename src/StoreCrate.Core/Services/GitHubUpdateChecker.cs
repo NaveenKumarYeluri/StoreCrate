@@ -59,10 +59,34 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
             string? downloadUrl = null;
             if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
+                var architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture switch
+                {
+                    System.Runtime.InteropServices.Architecture.X86 => "x86",
+                    System.Runtime.InteropServices.Architecture.Arm64 => "arm64",
+                    _ => "x64",
+                };
+
+                string? fallback = null;
                 foreach (var asset in assets.EnumerateArray())
                 {
                     var name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
-                    if (name is not null && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    if (name is null || !name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    // Skip the framework-dependent build; prefer the self-contained zip for
+                    // this architecture so the self-update works without a .NET runtime.
+                    if (name.Contains("framework-dependent", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    fallback ??= asset.TryGetProperty("browser_download_url", out var fallbackUrlElement)
+                        ? fallbackUrlElement.GetString()
+                        : null;
+
+                    if (name.Contains($"win-{architecture}", StringComparison.OrdinalIgnoreCase))
                     {
                         downloadUrl = asset.TryGetProperty("browser_download_url", out var urlElement)
                             ? urlElement.GetString()
@@ -70,6 +94,8 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
                         break;
                     }
                 }
+
+                downloadUrl ??= fallback;
             }
 
             return new AppUpdateInfo(

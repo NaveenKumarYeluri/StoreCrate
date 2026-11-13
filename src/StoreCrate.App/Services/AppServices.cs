@@ -54,6 +54,11 @@ public static class AppServices
             client.Timeout = TimeSpan.FromSeconds(30);
         });
 
+        services.AddHttpClient<SelfUpdateService>(client =>
+        {
+            client.Timeout = TimeSpan.FromMinutes(10);
+        });
+
         services.AddSingleton<NavigationService>();
         services.AddSingleton<DialogService>();
         services.AddSingleton<DownloadManager>();
