@@ -122,7 +122,7 @@
                       VerticalAlignment="Center"
                       Click="OnScrollLeftClick"
                       IsEnabled="{Binding HasScreenshots}" />
-              <ScrollViewer x:Name="ScreenshotsScroll" Grid.Column="1" Classes="horizontal">
+              <ScrollViewer Grid.Column="1" Classes="horizontal" PointerWheelChanged="OnScreenshotsWheel">
                 <ItemsControl ItemsSource="{Binding Product.ScreenshotUrls}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

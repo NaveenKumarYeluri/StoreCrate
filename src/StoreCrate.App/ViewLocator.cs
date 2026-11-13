@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Media;
 using StoreCrate.App.ViewModels;
 
 namespace StoreCrate.App;
@@ -28,7 +30,21 @@ public sealed class ViewLocator : IDataTemplate
             return new TextBlock { Text = $"Not Found: {typeName}" };
         }
 
-        return (Control)Activator.CreateInstance(type)!;
+        try
+        {
+            return (Control)Activator.CreateInstance(type)!;
+        }
+        catch (Exception ex)
+        {
+            // A throwing constructor used to leave the previous page on screen with no
+            // explanation; surface the failure instead.
+            return new TextBlock
+            {
+                Text = $"Failed to load {typeName}: {ex.Message}",
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(24),
+            };
+        }
     }
 
     public bool Match(object? data) => data is ViewModelBase;
