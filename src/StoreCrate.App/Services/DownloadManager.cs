@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia.Threading;
@@ -16,12 +17,13 @@ public sealed partial class DownloadManager : ObservableObject
     private readonly IServiceProvider _services;
     private readonly ISettingsService _settings;
     private readonly SemaphoreSlim _gate;
-    private readonly Dictionary<DownloadItem, CancellationTokenSource> _cancellations = new();
+    private readonly ConcurrentDictionary<DownloadItem, CancellationTokenSource> _cancellations = new();
 
     public DownloadManager(IServiceProvider services, ISettingsService settings)
     {
         _services = services;
         _settings = settings;
+        // Note: The semaphore capacity is fixed at startup. Changes to MaxConcurrentDownloads require an app restart to take effect.
         _gate = new SemaphoreSlim(
             Math.Clamp(settings.Current.MaxConcurrentDownloads, 1, 4),
             Math.Clamp(settings.Current.MaxConcurrentDownloads, 1, 4));
@@ -199,7 +201,7 @@ public sealed partial class DownloadManager : ObservableObject
         }
         finally
         {
-            _cancellations.Remove(item);
+            _cancellations.TryRemove(item, out _);
             Recalculate();
         }
     }
