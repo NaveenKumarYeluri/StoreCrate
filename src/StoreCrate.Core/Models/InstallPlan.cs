@@ -9,7 +9,9 @@ public sealed record InstallPlan
 
     public IReadOnlyList<Fe3Package> Dependencies { get; init; } = Array.Empty<Fe3Package>();
 
+    private IReadOnlyList<Fe3Package>? _allPackages;
+
     /// <summary>Dependencies first, then the main package.</summary>
     public IReadOnlyList<Fe3Package> AllPackages =>
-        Dependencies.Concat([MainPackage]).ToArray();
+        _allPackages ??= Dependencies.Concat([MainPackage]).ToList();
 }

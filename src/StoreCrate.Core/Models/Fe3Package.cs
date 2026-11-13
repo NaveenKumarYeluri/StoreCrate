@@ -13,11 +13,14 @@ public sealed record Fe3Package
 
     public required string Url { get; init; }
 
-    public PackageMoniker Parsed => PackageMoniker.Parse(Moniker);
+    private PackageMoniker? _parsed;
+    private PackageMoniker ParsedCached => _parsed ??= PackageMoniker.Parse(Moniker);
 
-    public string Name => Parsed.Name;
+    public PackageMoniker Parsed => ParsedCached;
 
-    public string Architecture => Parsed.Architecture;
+    public string Name => ParsedCached.Name;
 
-    public Version? Version => Parsed.Version;
+    public string Architecture => ParsedCached.Architecture;
+
+    public Version? Version => ParsedCached.Version;
 }
