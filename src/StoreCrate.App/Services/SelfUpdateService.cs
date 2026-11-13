@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Security.Cryptography;
+using StoreCrate.Core.Logging;
 using StoreCrate.Core.Services;
 
 namespace StoreCrate.App.Services;
@@ -46,8 +48,36 @@ public sealed class SelfUpdateService
             await stream.CopyToAsync(file, cancellationToken).ConfigureAwait(false);
         }
 
+        // SEC-1: Compute SHA-256 of the downloaded zip for audit purposes.
+        // TODO SEC-1: verify SHA-256 against a published checksum once release workflow publishes one.
+        using (var sha256 = SHA256.Create())
+        {
+            await using var zipStream = File.OpenRead(zipPath);
+            var hashBytes = await sha256.ComputeHashAsync(zipStream, cancellationToken).ConfigureAwait(false);
+            var hashHex = Convert.ToHexString(hashBytes);
+            AppLog.Info($"[SelfUpdate] Downloaded update.zip SHA-256: {hashHex}");
+        }
+
         var extracted = Path.Combine(root, "new");
-        ZipFile.ExtractToDirectory(zipPath, extracted, overwriteFiles: true);
+
+        // SEC-2: Manual extraction with path traversal (Zip Slip) protection.
+        using (var archive = ZipFile.OpenRead(zipPath))
+        {
+            var extractedFull = Path.GetFullPath(extracted) + Path.DirectorySeparatorChar;
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                // Skip directory entries
+                if (entry.FullName.EndsWith('/'))
+                    continue;
+
+                var dest = Path.GetFullPath(Path.Combine(extracted, entry.FullName));
+                if (!dest.StartsWith(extractedFull, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException($"Zip entry '{entry.FullName}' would extract outside the target directory.");
+
+                Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                entry.ExtractToFile(dest, overwrite: true);
+            }
+        }
 
         // Some archives wrap everything in a single top-level folder.
         if (!Directory.EnumerateFiles(extracted, "*.exe", SearchOption.AllDirectories).Any())
@@ -80,14 +110,18 @@ public sealed class SelfUpdateService
         var script = Path.Combine(StagingDirectory, "update-storecrate.bat");
         var exeName = Path.GetFileName(Environment.ProcessPath) is { Length: > 0 } name ? name : ExeName;
 
+        // SEC-3: Escape target and source paths before embedding in batch script to prevent command injection.
+        var safeTarget = EscapeBatchVar(target.TrimEnd('\\'));
+        var safeSource = EscapeBatchVar(source.TrimEnd('\\'));
+
         // The copy loop retries while StoreCrate.exe is still locked by the running
         // instance, so there is no need to watch the process id.
         var lines = new[]
         {
             "@echo off",
             "setlocal",
-            $"set \"TARGET={target.TrimEnd('\\')}\"",
-            $"set \"SOURCE={source.TrimEnd('\\')}\"",
+            $"set \"TARGET={safeTarget}\"",
+            $"set \"SOURCE={safeSource}\"",
             "ping -n 3 127.0.0.1 >nul",
             ":copyloop",
             "xcopy /Y /E /I \"%SOURCE%\\*\" \"%TARGET%\\\" >nul 2>&1",
@@ -111,6 +145,17 @@ public sealed class SelfUpdateService
             },
         };
         process.Start();
+    }
+
+    /// <summary>
+    /// Escapes a value for safe embedding in a batch file variable assignment.
+    /// Throws if the value contains newline characters that could break out of the assignment.
+    /// </summary>
+    private static string EscapeBatchVar(string value)
+    {
+        if (value.IndexOfAny(new[] { '\r', '\n' }) >= 0)
+            throw new InvalidOperationException("Update path contains illegal characters.");
+        return value.Replace("\"", "\\\"");
     }
 
     private static string ExeName => "StoreCrate.exe";
