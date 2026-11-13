@@ -48,7 +48,7 @@ public sealed class ImageCache
             await using var stream = File.OpenRead(path);
             return new Bitmap(stream);
         }
-        catch
+        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
         {
             return null;
         }
