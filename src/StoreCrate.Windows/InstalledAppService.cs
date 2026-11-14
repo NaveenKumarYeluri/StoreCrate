@@ -34,9 +34,11 @@ public sealed class InstalledAppService : IInstalledAppService
                 try
                 {
                     var manager = new PackageManager();
-                    var package = manager
-                        .FindPackagesForUser(string.Empty, packageFamilyName)
-                        .FirstOrDefault();
+                    // Use FindPackageForUser with the full name when available for a
+                    // more accurate match; fall back to FindPackagesForUser for PFN patterns.
+                    var package = string.IsNullOrWhiteSpace(packageFamilyName)
+                        ? null
+                        : manager.FindPackageForUser(string.Empty, packageFamilyName);
 
                     return package is null ? null : ToInstalledApp(package);
                 }
