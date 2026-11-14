@@ -86,12 +86,12 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center" Margin="14,0,0,0">
-                  <Button Classes="primary"
-                          Content="Launch"
+                  <Button Classes="secondary"
+                          Content="Open"
                           Padding="12,6"
                           MinHeight="32"
-                          IsVisible="{Binding CanLaunch}"
-                          Command="{Binding $parent[UserControl].DataContext.LaunchCommand}"
+                          IsVisible="{Binding CanOpen}"
+                          Command="{Binding $parent[UserControl].DataContext.OpenCommand}"
                           CommandParameter="{Binding}" />
                   <Button Classes="ghost"
                           Content="Cancel"

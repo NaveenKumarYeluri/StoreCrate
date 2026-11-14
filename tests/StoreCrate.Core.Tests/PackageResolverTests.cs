@@ -138,6 +138,27 @@ public class PackageResolverTests
     }
 
     [Fact]
+    public void ThrowsAndDoesNotPickFrameworkWhenMainPackageIncompatible()
+    {
+        var product = new StoreProduct
+        {
+            ProductId = "9N0DX20HK701",
+            Title = "Windows Terminal",
+            PackageIdentityName = "Microsoft.WindowsTerminal",
+            PackageFamilyName = "Microsoft.WindowsTerminal_8wekyb3d8bbwe",
+        };
+
+        var packages = new[]
+        {
+            Package("Microsoft.VCLibs.140.00.UWPDesktop_14.0.33728.0_x64__8wekyb3d8bbwe"),
+            Package("Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe"),
+        };
+
+        Assert.Throws<StoreApiException>(() =>
+            new PackageResolver().Resolve(product, packages, Architecture.X64));
+    }
+
+    [Fact]
     public void ThrowsWhenNoCompatiblePackageExists()
     {
         var packages = new[]

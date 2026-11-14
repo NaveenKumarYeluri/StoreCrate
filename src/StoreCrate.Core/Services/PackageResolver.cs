@@ -74,20 +74,28 @@ public sealed class PackageResolver : IPackageResolver
                 .Where(g => string.Equals(g.Key, identity, StringComparison.OrdinalIgnoreCase))
                 .Select(g => PickBest(g, hostArchitecture))
                 .FirstOrDefault(p => p is not null);
+
+            if (main is null)
+            {
+                throw new StoreApiException(
+                    $"None of the available packages for '{product.Title}' can be installed on this {hostArchitecture} device.");
+            }
         }
+        else
+        {
+            main = groups
+                .Where(g => !IsFramework(g.Key))
+                .Select(g => PickBest(g, hostArchitecture))
+                .Where(p => p is not null)
+                .OrderByDescending(p => p!.Version ?? new Version(0, 0))
+                .FirstOrDefault();
 
-        main ??= groups
-            .Where(g => !IsFramework(g.Key))
-            .Select(g => PickBest(g, hostArchitecture))
-            .Where(p => p is not null)
-            .OrderByDescending(p => p!.Version ?? new Version(0, 0))
-            .FirstOrDefault();
-
-        main ??= groups
-            .Select(g => PickBest(g, hostArchitecture))
-            .Where(p => p is not null)
-            .OrderByDescending(p => p!.Version ?? new Version(0, 0))
-            .FirstOrDefault();
+            main ??= groups
+                .Select(g => PickBest(g, hostArchitecture))
+                .Where(p => p is not null)
+                .OrderByDescending(p => p!.Version ?? new Version(0, 0))
+                .FirstOrDefault();
+        }
 
         if (main is null)
         {

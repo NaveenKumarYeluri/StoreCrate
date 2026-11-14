@@ -19,6 +19,9 @@ public sealed partial class DownloadsViewModel : ViewModelBase
     public DownloadManager Manager { get; }
 
     [RelayCommand]
+    private async Task OpenAsync(DownloadItem? item) => await LaunchAsync(item);
+
+    [RelayCommand]
     private async Task LaunchAsync(DownloadItem? item)
     {
         if (item is null || !item.IsCompleted)
