@@ -34,11 +34,16 @@ public sealed class InstalledAppService : IInstalledAppService
                 try
                 {
                     var manager = new PackageManager();
-                    // Use FindPackageForUser with the full name when available for a
-                    // more accurate match; fall back to FindPackagesForUser for PFN patterns.
+                    // Try exact-match first: use FindPackageForUser with the full PFN
+                    // returned by the catalog. If that fails (different format), fall back
+                    // to FindPackagesForUser which is more lenient and may find the package
+                    // even when the PFN format differs between catalog and installed state.
                     var package = string.IsNullOrWhiteSpace(packageFamilyName)
                         ? null
-                        : manager.FindPackageForUser(string.Empty, packageFamilyName);
+                        : manager.FindPackageForUser(string.Empty, packageFamilyName)
+                        ?? manager
+                           .FindPackagesForUser(string.Empty, packageFamilyName)
+                           .FirstOrDefault();
 
                     return package is null ? null : ToInstalledApp(package);
                 }
