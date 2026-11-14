@@ -36,11 +36,30 @@ public sealed class InstalledAppService : IInstalledAppService
                     var manager = new PackageManager();
                     InstalledApp? result = null;
 
-                    // Step 1: Try exact-match with FindPackageForUser (requires full PackageFullName format)
-                    // e.g., "9N9WCLWDQS5J_8wekyb3d8bbwe!App" vs just "9N9WCLWDQS5J"
+                    string queryFamily = packageFamilyName;
+                    string? normalizedFullName = null;
+                    string? queryName = null;
+
                     try
                     {
-                        var exactPkg = manager.FindPackageForUser(string.Empty, packageFamilyName);
+                        var moniker = PackageMoniker.Parse(packageFamilyName);
+                        queryName = moniker.Name;
+                        if (!string.IsNullOrWhiteSpace(moniker.PublisherId))
+                        {
+                            queryFamily = $"{moniker.Name}_{moniker.PublisherId}";
+                            normalizedFullName = moniker.ToString();
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to using the raw argument
+                    }
+
+                    // Step 1: Try exact-match with FindPackageForUser
+                    try
+                    {
+                        var exactPkg = manager.FindPackageForUser(string.Empty, packageFamilyName)
+                            ?? (normalizedFullName is not null ? manager.FindPackageForUser(string.Empty, normalizedFullName) : null);
                         if (exactPkg is not null)
                         {
                             result = ToInstalledApp(exactPkg);
@@ -48,16 +67,24 @@ public sealed class InstalledAppService : IInstalledAppService
                     }
                     catch { /* Ignored - will try fallback below */ }
 
-                    // Step 2: Try lenient pattern match with FindPackagesForUser
-                    // This finds packages even when the PFN format differs between catalog and installed state
+                    // Step 2: Try FindPackagesForUser using the family name
                     if (result is null)
                     {
                         try
                         {
                             var pkgs = manager
-                                .FindPackagesForUser(string.Empty, packageFamilyName)
-                                .Where(p => p.Id.FamilyName.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase))
+                                .FindPackagesForUser(string.Empty, queryFamily)
+                                .Where(p => p.Id.FamilyName.Equals(queryFamily, StringComparison.OrdinalIgnoreCase) ||
+                                            p.Id.FamilyName.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase))
                                 .ToList();
+
+                            if (pkgs.Count == 0 && !string.Equals(queryFamily, packageFamilyName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                pkgs = manager
+                                    .FindPackagesForUser(string.Empty, packageFamilyName)
+                                    .Where(p => p.Id.FamilyName.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase))
+                                    .ToList();
+                            }
 
                             if (pkgs.Count > 0)
                             {
@@ -67,14 +94,16 @@ public sealed class InstalledAppService : IInstalledAppService
                         catch { /* Ignored */ }
                     }
 
-                    // Step 3: Very lenient - enumerate all packages and find by name match
+                    // Step 3: Very lenient - enumerate all packages and find by family or name match
                     if (result is null)
                     {
                         try
                         {
                             var allPkgs = manager.FindPackagesForUser(string.Empty)
                                 .Where(p => 
+                                    p.Id.FamilyName.Equals(queryFamily, StringComparison.OrdinalIgnoreCase) ||
                                     p.Id.FamilyName.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase) ||
+                                    (queryName is not null && p.Id.Name.Equals(queryName, StringComparison.OrdinalIgnoreCase)) ||
                                     p.Id.Name.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase))
                                 .ToList();
 

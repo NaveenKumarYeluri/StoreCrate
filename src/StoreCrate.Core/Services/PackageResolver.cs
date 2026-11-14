@@ -16,6 +16,23 @@ public sealed class PackageResolver : IPackageResolver
         "Microsoft.Advertising",
     ];
 
+    private static readonly HashSet<string> DesktopSupportedPlatforms = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Windows.Desktop",
+        "Windows.Universal",
+        "Windows.Core",
+    };
+
+    internal static bool IsPlatformCompatible(CatalogPackage catalogPackage)
+    {
+        if (catalogPackage.Platforms.Count == 0)
+        {
+            return true;
+        }
+
+        return catalogPackage.Platforms.Any(p => DesktopSupportedPlatforms.Contains(p));
+    }
+
     public InstallPlan Resolve(StoreProduct product, IReadOnlyList<Fe3Package> packages) =>
         Resolve(product, packages, RuntimeInformation.OSArchitecture);
 
@@ -27,8 +44,15 @@ public sealed class PackageResolver : IPackageResolver
         ArgumentNullException.ThrowIfNull(product);
         ArgumentNullException.ThrowIfNull(packages);
 
+        var incompatibleMonikers = new HashSet<string>(
+            product.Packages
+                .Where(cp => !IsPlatformCompatible(cp) && !string.IsNullOrWhiteSpace(cp.PackageFullName))
+                .Select(cp => cp.PackageFullName!),
+            StringComparer.OrdinalIgnoreCase);
+
         var candidates = packages
             .Where(p => !string.Equals(p.PackageType, "XAP", StringComparison.OrdinalIgnoreCase))
+            .Where(p => !incompatibleMonikers.Contains(p.Moniker))
             .ToList();
 
         if (candidates.Count == 0)

@@ -5,6 +5,8 @@ public sealed record CatalogPackage
 {
     public IReadOnlyList<string> Architectures { get; init; } = Array.Empty<string>();
 
+    public IReadOnlyList<string> Platforms { get; init; } = Array.Empty<string>();
+
     public string? Version { get; init; }
 
     public long? MaxDownloadSizeBytes { get; init; }

@@ -97,6 +97,47 @@ public class PackageResolverTests
     }
 
     [Fact]
+    public void ResolvesMainPackageWithTildeResourceIdMonikerAndFiltersIncompatiblePlatform()
+    {
+        var product = new StoreProduct
+        {
+            ProductId = "9N9WCLWDQS5J",
+            Title = "Bluetooth Audio Receiver",
+            PackageFamilyName = "55746MarkSmirnov.BluetoothAudioReveicer_xwrbx6997tsfc",
+            PackageIdentityName = "55746MarkSmirnov.BluetoothAudioReveicer",
+            Packages = new[]
+            {
+                new CatalogPackage
+                {
+                    PackageFullName = "55746MarkSmirnov.BluetoothAudioReveicer_1.1.5.70_neutral_~_xwrbx6997tsfc",
+                    Platforms = new[] { "Windows.Xbox" },
+                    Version = "1.1.5.70",
+                },
+                new CatalogPackage
+                {
+                    PackageFullName = "55746MarkSmirnov.BluetoothAudioReveicer_1.1.5.0_neutral_~_xwrbx6997tsfc",
+                    Platforms = new[] { "Windows.Universal" },
+                    Version = "1.1.5.0",
+                },
+            },
+        };
+
+        var packages = new[]
+        {
+            Package("55746MarkSmirnov.BluetoothAudioReveicer_1.1.5.70_neutral_~_xwrbx6997tsfc"),
+            Package("55746MarkSmirnov.BluetoothAudioReveicer_1.1.5.0_neutral_~_xwrbx6997tsfc"),
+            Package("Microsoft.VCLibs.140.00_14.0.33519.0_x64__8wekyb3d8bbwe"),
+            Package("Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe"),
+        };
+
+        var plan = new PackageResolver().Resolve(product, packages, Architecture.X64);
+
+        Assert.Equal("55746MarkSmirnov.BluetoothAudioReveicer", plan.MainPackage.Name);
+        Assert.Equal(new Version(1, 1, 5, 0), plan.MainPackage.Version);
+        Assert.Equal(2, plan.Dependencies.Count);
+    }
+
+    [Fact]
     public void ThrowsWhenNoCompatiblePackageExists()
     {
         var packages = new[]

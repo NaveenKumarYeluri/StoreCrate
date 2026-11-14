@@ -66,6 +66,8 @@ public sealed partial class DownloadItem : ObservableObject
 
     public bool CanRetry => State is DownloadState.Failed or DownloadState.Cancelled;
 
+    public bool CanLaunch => State is DownloadState.Completed;
+
     public string PercentText => $"{Math.Clamp(Progress, 0, 100):0}%";
 
     partial void OnStateChanged(DownloadState value)
@@ -76,6 +78,7 @@ public sealed partial class DownloadItem : ObservableObject
         OnPropertyChanged(nameof(IsQueued));
         OnPropertyChanged(nameof(CanCancel));
         OnPropertyChanged(nameof(CanRetry));
+        OnPropertyChanged(nameof(CanLaunch));
     }
 
     partial void OnProgressChanged(double value) => OnPropertyChanged(nameof(PercentText));

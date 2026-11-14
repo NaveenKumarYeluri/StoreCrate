@@ -55,7 +55,11 @@ public sealed record StoreProduct
     {
         get
         {
-            var versions = Packages
+            var compatible = Packages
+                .Where(p => p.Platforms.Count == 0 || p.Platforms.Any(pl => pl is "Windows.Desktop" or "Windows.Universal" or "Windows.Core"))
+                .ToList();
+            var source = compatible.Count > 0 ? compatible : Packages;
+            var versions = source
                 .Select(p => Version.TryParse(p.Version, out var version) ? version : null)
                 .Where(version => version is not null)
                 .Select(version => version!)

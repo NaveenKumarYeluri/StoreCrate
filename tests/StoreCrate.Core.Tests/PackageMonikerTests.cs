@@ -57,6 +57,40 @@ public class PackageMonikerTests
     }
 
     [Fact]
+    public void ParsesTildeResourceIdMoniker()
+    {
+        var moniker = PackageMoniker.Parse("55746MarkSmirnov.BluetoothAudioReveicer_1.1.5.70_neutral_~_xwrbx6997tsfc");
+
+        Assert.Equal("55746MarkSmirnov.BluetoothAudioReveicer", moniker.Name);
+        Assert.Equal("1.1.5.70", moniker.VersionText);
+        Assert.Equal("neutral", moniker.Architecture);
+        Assert.Equal("xwrbx6997tsfc", moniker.PublisherId);
+        Assert.Equal(new Version(1, 1, 5, 70), moniker.Version);
+    }
+
+    [Fact]
+    public void ParsesNamedResourceIdMoniker()
+    {
+        var moniker = PackageMoniker.Parse("Contoso.App_1.0.0.0_x64_scale-100_abc123");
+
+        Assert.Equal("Contoso.App", moniker.Name);
+        Assert.Equal("1.0.0.0", moniker.VersionText);
+        Assert.Equal("x64", moniker.Architecture);
+        Assert.Equal("abc123", moniker.PublisherId);
+    }
+
+    [Fact]
+    public void ParsesPackageFamilyName()
+    {
+        var moniker = PackageMoniker.Parse("55746MarkSmirnov.BluetoothAudioReveicer_xwrbx6997tsfc");
+
+        Assert.Equal("55746MarkSmirnov.BluetoothAudioReveicer", moniker.Name);
+        Assert.Equal(string.Empty, moniker.VersionText);
+        Assert.Equal("neutral", moniker.Architecture);
+        Assert.Equal("xwrbx6997tsfc", moniker.PublisherId);
+    }
+
+    [Fact]
     public void RejectsEmptyInput()
     {
         Assert.Throws<ArgumentException>(() => PackageMoniker.Parse("  "));

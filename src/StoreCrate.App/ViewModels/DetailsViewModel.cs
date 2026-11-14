@@ -202,15 +202,7 @@ public sealed partial class DetailsViewModel : ViewModelBase
             return;
         }
 
-        // Try PackageFullName first (includes version+arch) for a more accurate match,
-        // falling back to PackageFamilyName if PackageFullName isn't available.
-        string? fullName = null;
-        if (Product.Packages.Count > 0 && Product.Packages[0].PackageFullName is { } fn)
-        {
-            fullName = fn;
-        }
-
-        InstalledApp = await _installedApps.FindInstalledAsync(fullName ?? familyName);
+        InstalledApp = await _installedApps.FindInstalledAsync(familyName);
         IsInstalled = InstalledApp is not null;
         OnPropertyChanged(nameof(InstallButtonText));
         OnPropertyChanged(nameof(InstalledVersionText));

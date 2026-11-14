@@ -97,12 +97,19 @@ public static class StoreJsonParser
                 version = null;
             }
 
+            var platforms = Items(package, "PlatformDependencies")
+                .Select(p => Str(p, "PlatformName"))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s!)
+                .ToList();
+
             packages.Add(new CatalogPackage
             {
                 Architectures = Items(package, "Architectures")
                     .Where(a => a.ValueKind == JsonValueKind.String)
                     .Select(a => a.GetString()!)
                     .ToList(),
+                Platforms = platforms,
                 Version = version,
                 MaxDownloadSizeBytes = Long(package, "MaxDownloadSizeInBytes"),
                 MaxInstallSizeBytes = Long(package, "MaxInstallSizeInBytes"),
