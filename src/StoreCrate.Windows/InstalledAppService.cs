@@ -34,18 +34,59 @@ public sealed class InstalledAppService : IInstalledAppService
                 try
                 {
                     var manager = new PackageManager();
-                    // Try exact-match first: use FindPackageForUser with the full PFN
-                    // returned by the catalog. If that fails (different format), fall back
-                    // to FindPackagesForUser which is more lenient and may find the package
-                    // even when the PFN format differs between catalog and installed state.
-                    var package = string.IsNullOrWhiteSpace(packageFamilyName)
-                        ? null
-                        : manager.FindPackageForUser(string.Empty, packageFamilyName)
-                        ?? manager
-                           .FindPackagesForUser(string.Empty, packageFamilyName)
-                           .FirstOrDefault();
+                    InstalledApp? result = null;
 
-                    return package is null ? null : ToInstalledApp(package);
+                    // Step 1: Try exact-match with FindPackageForUser (requires full PackageFullName format)
+                    // e.g., "9N9WCLWDQS5J_8wekyb3d8bbwe!App" vs just "9N9WCLWDQS5J"
+                    try
+                    {
+                        var exactPkg = manager.FindPackageForUser(string.Empty, packageFamilyName);
+                        if (exactPkg is not null)
+                        {
+                            result = ToInstalledApp(exactPkg);
+                        }
+                    }
+                    catch { /* Ignored - will try fallback below */ }
+
+                    // Step 2: Try lenient pattern match with FindPackagesForUser
+                    // This finds packages even when the PFN format differs between catalog and installed state
+                    if (result is null)
+                    {
+                        try
+                        {
+                            var pkgs = manager
+                                .FindPackagesForUser(string.Empty, packageFamilyName)
+                                .Where(p => p.Id.FamilyName.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase))
+                                .ToList();
+
+                            if (pkgs.Count > 0)
+                            {
+                                result = ToInstalledApp(pkgs[0]);
+                            }
+                        }
+                        catch { /* Ignored */ }
+                    }
+
+                    // Step 3: Very lenient - enumerate all packages and find by name match
+                    if (result is null)
+                    {
+                        try
+                        {
+                            var allPkgs = manager.FindPackagesForUser(string.Empty)
+                                .Where(p => 
+                                    p.Id.FamilyName.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase) ||
+                                    p.Id.Name.Equals(packageFamilyName, StringComparison.OrdinalIgnoreCase))
+                                .ToList();
+
+                            if (allPkgs.Count > 0)
+                            {
+                                result = ToInstalledApp(allPkgs[0]);
+                            }
+                        }
+                        catch { /* Ignored */ }
+                    }
+
+                    return result;
                 }
                 catch (Exception ex)
                 {
