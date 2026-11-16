@@ -14,46 +14,28 @@ public sealed partial class DownloadsViewModel : ViewModelBase
     {
         Manager = manager;
         _installedApps = installedApps;
+
+        foreach (var item in manager.Items)
+        {
+            AttachItemHandlers(item);
+        }
     }
 
     public DownloadManager Manager { get; }
 
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private async Task OpenAsync(DownloadItem? item) => await LaunchAsync(item);
 
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private async Task LaunchAsync(DownloadItem? item)
     {
-        if (item is null || !item.IsCompleted)
+        if (item is null)
         {
             return;
         }
 
-        var familyName = item.Plan.Product.PackageFamilyName;
-        InstalledApp? app = null;
-
-        if (!string.IsNullOrWhiteSpace(familyName))
-        {
-            app = await _installedApps.FindInstalledAsync(familyName).ConfigureAwait(true);
-        }
-
-        if (app is null && item.Plan.MainPackage is not null)
-        {
-            app = await _installedApps.FindInstalledAsync(item.Plan.MainPackage.Moniker).ConfigureAwait(true);
-        }
-
-        if (app is not null)
-        {
-            var launched = await _installedApps.LaunchAsync(app).ConfigureAwait(true);
-            if (!launched)
-            {
-                item.DetailText = "Windows could not launch this app.";
-            }
-        }
-        else
-        {
-            item.DetailText = "App is not registered with Windows.";
-        }
+        AttachItemHandlers(item);
+        await item.OpenCommand.ExecuteAsync(null);
     }
 
     [RelayCommand]
@@ -61,7 +43,7 @@ public sealed partial class DownloadsViewModel : ViewModelBase
     {
         if (item is not null)
         {
-            Manager.Cancel(item);
+            item.CancelCommand.Execute(null);
         }
     }
 
@@ -70,8 +52,15 @@ public sealed partial class DownloadsViewModel : ViewModelBase
     {
         if (item is not null)
         {
-            Manager.Retry(item);
+            item.RetryCommand.Execute(null);
         }
+    }
+
+    private void AttachItemHandlers(DownloadItem item)
+    {
+        item.OpenHandler ??= Manager.LaunchAsync;
+        item.CancelHandler ??= Manager.Cancel;
+        item.RetryHandler ??= Manager.Retry;
     }
 
     [RelayCommand]

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using StoreCrate.Core.Models;
 
 namespace StoreCrate.App.ViewModels;
@@ -13,7 +14,11 @@ public enum DownloadState
     Cancelled,
 }
 
-/// <summary>One queued install: download progress, install state and user actions.</summary>
+/// <summary>
+/// One queued install: download progress, install state and user actions.
+/// Each item owns its own commands so that running an action for one app
+/// never disables or highlights the buttons of every other app.
+/// </summary>
 public sealed partial class DownloadItem : ObservableObject
 {
     public DownloadItem(InstallPlan plan)
@@ -71,6 +76,34 @@ public sealed partial class DownloadItem : ObservableObject
     public bool CanLaunch => CanOpen;
 
     public string PercentText => $"{Math.Clamp(Progress, 0, 100):0}%";
+
+    public Func<DownloadItem, Task>? OpenHandler { get; set; }
+
+    public Action<DownloadItem>? CancelHandler { get; set; }
+
+    public Action<DownloadItem>? RetryHandler { get; set; }
+
+    [RelayCommand]
+    private async Task OpenAsync()
+    {
+        if (!CanOpen)
+        {
+            return;
+        }
+
+        if (OpenHandler is not null)
+        {
+            await OpenHandler(this);
+        }
+    }
+
+    public IAsyncRelayCommand LaunchCommand => OpenCommand;
+
+    [RelayCommand]
+    private void Cancel() => CancelHandler?.Invoke(this);
+
+    [RelayCommand]
+    private void Retry() => RetryHandler?.Invoke(this);
 
     partial void OnStateChanged(DownloadState value)
     {

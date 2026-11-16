@@ -52,7 +52,12 @@ public sealed partial class DownloadManager : ObservableObject
             return running;
         }
 
-        var item = new DownloadItem(plan);
+        var item = new DownloadItem(plan)
+        {
+            CancelHandler = Cancel,
+            RetryHandler = Retry,
+            OpenHandler = LaunchAsync,
+        };
         Items.Insert(0, item);
         OnPropertyChanged(nameof(HasItems));
         _ = ProcessAsync(item);
@@ -95,6 +100,41 @@ public sealed partial class DownloadManager : ObservableObject
 
     public void OpenDownloadsFolder() =>
         _services.GetRequiredService<DialogService>().OpenInExplorer(_settings.DownloadDirectory);
+
+    public async Task LaunchAsync(DownloadItem item)
+    {
+        if (item is null || !item.IsCompleted)
+        {
+            return;
+        }
+
+        var familyName = item.Plan.Product.PackageFamilyName;
+        InstalledApp? app = null;
+        var installedApps = _services.GetRequiredService<IInstalledAppService>();
+
+        if (!string.IsNullOrWhiteSpace(familyName))
+        {
+            app = await installedApps.FindInstalledAsync(familyName).ConfigureAwait(true);
+        }
+
+        if (app is null && item.Plan.MainPackage is not null)
+        {
+            app = await installedApps.FindInstalledAsync(item.Plan.MainPackage.Moniker).ConfigureAwait(true);
+        }
+
+        if (app is not null)
+        {
+            var launched = await installedApps.LaunchAsync(app).ConfigureAwait(true);
+            if (!launched)
+            {
+                item.DetailText = "Windows could not launch this app.";
+            }
+        }
+        else
+        {
+            item.DetailText = "App is not registered with Windows.";
+        }
+    }
 
     private async Task ProcessAsync(DownloadItem item)
     {

@@ -91,22 +91,19 @@
                           Padding="12,6"
                           MinHeight="32"
                           IsVisible="{Binding CanOpen}"
-                          Command="{Binding $parent[UserControl].DataContext.OpenCommand}"
-                          CommandParameter="{Binding}" />
+                          Command="{Binding OpenCommand}" />
                   <Button Classes="ghost"
                           Content="Cancel"
                           Padding="12,6"
                           MinHeight="32"
                           IsVisible="{Binding CanCancel}"
-                          Command="{Binding $parent[UserControl].DataContext.CancelCommand}"
-                          CommandParameter="{Binding}" />
+                          Command="{Binding CancelCommand}" />
                   <Button Classes="secondary"
                           Content="Retry"
                           Padding="12,6"
                           MinHeight="32"
                           IsVisible="{Binding CanRetry}"
-                          Command="{Binding $parent[UserControl].DataContext.RetryCommand}"
-                          CommandParameter="{Binding}" />
+                          Command="{Binding RetryCommand}" />
                 </StackPanel>
 
               </Grid>
